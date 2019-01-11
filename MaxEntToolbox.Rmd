@@ -1,0 +1,90 @@
+---
+title: "Data Processing"
+author: "Oakology"
+date: "January 11, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages}
+
+
+library(tidyverse)
+library(sf)
+library(raster)
+#library(sp)
+#library(rgdal)
+#library(maptools)
+#library(dismo)
+
+```
+
+
+Extent
+
+```{r}
+
+extent_name<-"allisland_10m"
+
+#Island Outline and Extent
+island_outline<-"G:\data\islands\all_islands\Channel_Islands_CUSP\Channel_Islands_CUSP_Teale_Albers\Channel_Islands_CUSP_Teale_Albers.shp"
+
+extent<-"G:\data\climate\GISModel_Input\historic\cwd1981_2010_ave_HST_1539127145.tif"
+
+#Extract by Mask
+#Input Extent with mask of island outline
+#Save as G:\data\islands\MaxEnt\Processing\Extent\maskedextent.tif
+
+#Resample-Remove step
+#Take masked extent and make output raster dataset G:\data\islands\MaxEnt\Extent\%Name%.tif with output cell size of 270by270 using nearest resampling technique
+
+#save final file as G:\data\islands\MaxEnt\Extent\%Name%.tif
+
+```
+
+
+Oak Combined and Individual
+
+```{r}
+#Oak Points
+SCAOakPoints<-"G:\data\islands\sca\Quertome\SCAOakPoints_AEA.shp"
+
+SRIOakPoints<-"G:\data\islands\sri\OakPoint\SRI_OakPoints_AEA.shp"
+  
+SCROakPoints<-"G:\data\islands\scr\OakPoint\SCROakPoints_AEA.shp"
+
+#Merge all the oak points and save as below shape file
+
+merge_all_oak<-"G:\data\islands\MaxEnt\Processing\Oak\merge_all_oak.shp"
+
+#Add xy coordinates
+
+#Add field called Species
+#Calulate Field- fill with "quercus tomentella"
+
+
+#Table to Table
+
+#OakWorkspace<-G:\data\islands\MaxEnt\MEInputOak\all_islands_100m
+#OutputTable<-OakPoints.csv
+
+#Save to Oak Workspace plus output table
+
+
+
+
+```
+
+
+
+Climate
+
+
+Island
+
+
+Fog
