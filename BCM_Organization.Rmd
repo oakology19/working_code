@@ -1,0 +1,146 @@
+---
+title: "Moving Files"
+author: "Sofie McComb"
+date: "November 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This R Markdown script should be used to transfer the output files from the ArcGIS data processing model to the MaxEnt input data files folder. The script makes sure the files are sent to the correct folders, labeled the same across scenarios, and removes NaN issues for interpolated files. 
+
+The script is most useful to move climate layers as it automates the process, but it can be used for oak presence sample points although it is faster to copy those over to just the historic samples folder.
+
+The script can be appended to do the same for the island layers features, but as we are currently not using those in the MaxEnt analysis across all scenarios we have not included those in this script.
+
+
+```{r}
+
+#Make sure these are installed
+# install.packages("plyr")
+# install.packages("dostats")
+# library(plyr)
+# library(dostats)
+
+#Change the directories names below
+#####################################################################################################
+#ONLY CHANGE THESE TWO
+extent<-"allCA"
+bcm<-"MPI_rcp45_2070_2099"
+
+#Options to select from for extent:
+#allislands_10m
+#allislands_100m
+#ni_100m
+#sca_int_10m
+#sca_100m
+#sri_10m
+#allCA
+
+#Options to select from for historic vs projected:
+#historic
+#CCSM4_rcp85_2010_2039
+#CCSM4_rcp85_2040_2069
+#CCSM4_rcp85_2070_2099
+#MIROC_rcp45_2010_2039
+#MIROC_rcp45_2040_2069
+#MIROC_rcp45_2070_2099
+#MIROC_rcp85_2010_2039
+#MIROC_rcp85_2040_2069
+#MIROC_rcp85_2070_2099
+#MPI_rcp45_2010_2039
+#MPI_rcp45_2040_2069
+#MPI_rcp45_2070_2099
+
+######################################################################################################
+
+#Select files to pull from due to names set above
+####################################################################################################
+#Which folders to pull from and send to for climate variables
+clim_from<- paste0("G:/data/climate/MEInput/", extent, "/", bcm, "/")
+clim_to<-paste0("G:/data/tools/MaxEnt/Input/", extent, "/", bcm, "/layers/")
+
+# #Which folders to pull from and send to for oak csv (for projections just change to not from)-often move by hand
+# oak_from<-paste0("G:/data/islands/MaxEnt/MEInputOak/", extent, "/")
+# oak_to<-paste0("G:/data/tools/MaxEnt/Input/", extent, "/historic/samples/")
+
+########################################################################################################
+
+
+#Actually pull from those files and move them
+########################################################################################################
+#Climate variables
+
+files <- list.files(path = clim_from, pattern = ".asc")
+for (i in files){
+  var<-substr(i, 1, 3)
+  file.copy(from=paste0(clim_from, i), to=paste0(clim_to,var, ".asc"), overwrite=TRUE)
+}
+
+# #Oak points (Be sure to go in before and check csv does not have the oid column-otherwise remove)
+# oak <- list.files(path = oak_from, pattern = ".csv")
+# file.copy(from=paste0(oak_from, oak), to=paste0(oak_to,oak), overwrite=TRUE)
+
+########################################################################################################
+
+#If wanted to run for all the climate folders at once
+#Thereotically to do all at once you would for loop through folder names
+# folders<-list.dirs(path="G:/data/climate/MEInput", recursive=FALSE)
+# for (f in folders){
+#   clim_from<-f
+#   clim_to<-paste0("G:/data/tools/MaxEnt/Input/", basename(f), "/","layers/")
+#   files <- list.files(path = clim_from, pattern = ".asc")
+#   for (i in files){
+#     var<-substr(i, 1, 3)
+#     file.copy(from=paste0(clim_from, i), to=paste0(clim_to,var, ".asc"), overwrite=TRUE)
+#   }
+# }
+
+#Island variables
+#Don't need to copy these since not currently using in MaxEnt model
+
+
+```
+
+#On the files that will be transported over to the Maxent Input folder for SCA_Int
+#Make sure to switch NaN to -9999               
+```{r}
+
+library(raster)
+
+extent<-"sca_int_100m"
+bcm<-"MIROC_rcp45_2040_2069"
+
+#historic
+#CCSM4_rcp85_2010_2039
+#CCSM4_rcp85_2040_2069
+#CCSM4_rcp85_2070_2099
+#MIROC_rcp45_2010_2039
+#MIROC_rcp45_2040_2069
+#MIROC_rcp45_2070_2099
+#MIROC_rcp85_2010_2039
+#MIROC_rcp85_2040_2069
+#MIROC_rcp85_2070_2099
+#MPI_rcp45_2010_2039
+#MPI_rcp45_2040_2069
+#MPI_rcp45_2070_2099
+
+
+clim_from<- paste0("G:/data/climate/MEInput/", extent, "/", bcm, "/")
+clim_to<-paste0("G:/data/tools/MaxEnt/Input/", extent, "/", bcm, "/layers/")
+
+
+files <- list.files(path = clim_from, pattern = ".asc$")
+for (i in files){
+  var<-substr(i, 1, 3)
+  asc<-raster(read.asciigrid(paste0(clim_from, i))) #might not need read.asciigrid but leave in
+  asc[is.nan(asc)] <- -9999
+ writeRaster(asc,file=paste0(clim_to,var, ".asc"), format="ascii", overwrite=TRUE)
+ 
+}
+
+
+```
+

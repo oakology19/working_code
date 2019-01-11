@@ -1,0 +1,171 @@
+---
+title: "Vegetation"
+author: "Sofie McComb"
+date: "October 28, 2018"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This R Markdown script can be used to classify the broad island-by-island vegetation types into more specific vegetation classification schemes that can be used to merge all the islands together and create a systematic raster of vegetation types to be inputted into MaxEnt.
+
+**DO NOT RUN THIS SCRIPT ALL AT ONCE**
+It is an interactive script where you need to input your selected vegetation classifications in the middle. In other words it makes an output halfway that needs to be corrected in excel on the basis of selected broad vegetation classification schemes (user decided), and then brought back in to make the final shapefile that is joined with the vegetation classification information.
+
+1. Load "necessary"" packages
+
+```{r packages, include=FALSE}
+library(tidyverse) #datascience package
+library(raster) #raster library
+library(sf)
+library(sp) #more spatial
+library(gstat) #For geospatial statistics
+library(rgdal) #spatial library 
+library(tmap)
+library(dplyr) #data wrangling  
+library(maptools)
+library(rgeos)
+```
+
+
+2. Load in data
+  - Vegetation Map Shapefile including Santa Rosa, San Miguel, and Anacapa
+  - Vegetation Map Shapefile of Santa Catalina
+  -Current 2007 Santa Cruz Vegetation Map
+
+```{r data}
+
+#Read in the northern Channel Islands Veg Map which is in a geodatabase
+
+require(rgdal)
+
+# The input file geodatabase
+vegni_gdb <- "G:/data/islands/all_islands/Channel_Islands_Veg_Map_2017/ChannelIslands_Veg_2017.gdb"
+
+# List all feature classes in a file geodatabase
+subset(ogrDrivers(), grepl("GDB", name))
+vegni_list <- ogrListLayers(vegni_gdb)
+print(vegni_list)
+
+# Read the feature class
+vegni_fc <- readOGR(dsn=vegni_gdb,layer="ChannelIslandsVegetation",stringsAsFactors = FALSE)
+
+# Determine the FC extent, projection, and attribute information
+summary(vegni_fc )
+
+# View the feature class
+plot(vegni_fc )
+
+
+
+#Read in SCA veg map
+vegsca<-readOGR("G:/data/islands/sca/veg_2000/veg_2000.shp", stringsAsFactors = FALSE)
+vegsca
+
+#Read in SCR veg map
+vegscr<-readOGR("G:/data/islands/scr/scr_veg_aea/scr_veg_aea.shp", stringsAsFactors = FALSE)
+vegscr
+  
+
+```
+
+  
+3. Determine unique vegetation community names for each shapefile and export table of the names with numbers
+
+```{r}
+
+#Create table of unique veg names and numbers for northern islands
+vegni_uniqnum<-unique(vegni_fc@data$All_Equiv)
+vegni_uniqname<-unique(vegni_fc@data$AllCommon)
+
+vegni_table<-data.frame(vegni_uniqnum, vegni_uniqname)
+
+
+#Create table of unique veg names and numbers for sca
+vegsca_uniqnum<-unique(vegsca@data$ID)
+vegnsca_uniqname<-unique(vegsca@data$COMMUNITY)
+
+vegsca_table<-data.frame(vegsca_uniqnum, vegnsca_uniqname)
+
+
+#Create table of unique veg names and numbers for scr
+vegscr_uniqnum<-unique(vegscr@data$MapCode_05)
+vegnscr_uniqname<-unique(vegscr@data$Common_05)
+
+vegscr_table<-data.frame(vegscr_uniqnum, vegnscr_uniqname)
+
+
+#Export tables as csv to Vegetation in Working All Folder to Make Excel Tables to Join
+
+#write.csv(vegni_table, file="G:/working/all/Vegetation/vegni.csv")
+#write.csv(vegsca_table, file="G:/working/all/Vegetation/vegsca.csv")
+#write.csv(vegscr_table, file="G:/working/all/Vegetation/vegscr.csv")
+
+```
+
+
+4. In excel create match up table. 
+  Aka Master Table that establishes the major vegetation groups and numbers. And then in the exported table make a new column where you put this new number as well as the vegetation associated name (for loop through to add)
+  
+  Did this by looking at the tables and creating overarching categories 
+  Used NLCD covers as big reference and Calscape to help define where things fall
+  
+  Used papers to define between Chaparral and Coastal Shrub:
+  https://escholarship.org/uc/item/9rj6r9f1
+  http://rangelandarchive.ucdavis.edu/Annual_Rangeland_Handbook/Ecology/
+  Calscape
+  
+  VegCover	Value
+Woodland	1
+Chaparral	2
+Coastal Shrub	3
+Grassland	4
+Riparian	5
+Dune	6
+Developed/Water	7
+
+  
+5. Join finished table with shapefiles (in R but GIS style join)
+
+```{r tables}
+
+#Reading in the veg map connecting tables we designed to implement broader veg map groupings
+vegni_csv<-read.csv("G:/working/all/Vegetation/vegni_class.csv", stringsAsFactors = FALSE)
+vegsca_csv<-read.csv("G:/working/all/Vegetation/vegsca_class.csv", stringsAsFactors = FALSE)
+vegscr_csv<-read.csv("G:/working/all/Vegetation/vegscr_class.csv", stringsAsFactors = FALSE)
+
+require(sp) # the trick is that this package must be loaded!
+
+vegni_join <- sp::merge(vegni_fc,vegni_csv, by="All_Equiv")
+vegsca_join<-sp::merge(vegsca,vegsca_csv, by="ID")
+vegscr_join<-sp::merge(vegscr,vegscr_csv, by="MapCode_05")
+
+```
+
+
+6. Export new updated shapefiles to same location where veg shapefiles originally exist
+
+```{r}
+
+#Project spatial data frames into California Teale Albers
+
+ctalbers<-"+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+vegni_prj <- spTransform(vegni_join, CRS(ctalbers))
+vegsca_prj<- spTransform(vegsca_join, CRS(ctalbers))
+vegscr_prj<- spTransform(vegscr_join, CRS(ctalbers))
+
+
+#Write SPDF as shapefile under veg folders
+
+#writeOGR(vegni_prj, dsn = "G:/data/islands/all_islands/Channel_Islands_Veg_Map_2017/NIVegMapClass", layer = "NIVegMapClass", driver="ESRI Shapefile")
+
+#writeOGR(vegsca_prj, dsn = "G:/data/islands/sca/SCAVegMapClass", layer = "SCAVegMapClass", driver="ESRI Shapefile")
+
+writeOGR(vegscr_prj, dsn = "G:/data/islands/scr/SCRVegMapClass", layer = "SCRVegMapClass", driver="ESRI Shapefile")
+
+```
+

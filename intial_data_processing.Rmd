@@ -1,0 +1,90 @@
+---
+title: "Data Processing for MaxEnt Input"
+author: "Claire Powers"
+date: "November 2, 2018"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1) Load packages
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(raster)     
+library(rgdal)      
+library(dplyr)  
+library(tidyverse)
+```
+
+2) Read in data - Using soil polygons while debugging code and determining ideal function and arguments.
+```{r load_data, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Make sure data to be read in is in the current working directory. If working in a version control file, your current working directory looks identical to the repository on GitHub. We can upload data there (it is private currently now, so people can't steal the data), and then it will automatically be present in the version control GitHub repository online. We have a github folder in our Oakology G: drive, but it is basic and not organized at this point. 
+
+#Read in soil data using raster::shapefile
+# soil <- shapefile("Soil/soils_AEA.shp")
+
+#Another option to read in polgons/shapefiles -- rgdal::readOGR. 
+# In comparing the summaries of each read in file, the readOGR options looks ideal. 
+
+# READ IN FOR SCHOOL COMPUTER before GitHub
+# soil <- readOGR('G:/data/GitHub/oakology/Soil', 'soils_AEA')
+
+#READ IN FOR CP'S COMPUTER
+soil <- readOGR('Soil','soils_AEA')
+# summary(soil)
+# class(soil)
+# plot(soil)
+
+# Check CRS
+# crs(soil)
+# Look at projection -- Currently soil is in appropriate projection
+# Reassign projection if necessary -- incorporate that into final function
+# CA Teale Albers Proj4 -- no EPSG, below are the parameters for the projection.
+#"+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+
+#Define characteristics of the raster: Extent, resolution
+ ext <- extent(-42125.836,158214.164,-578083.334,-437413.334)
+ gridsize <- 100
+ r <- raster(ext, res=gridsize)
+```
+
+3) Piece-wise code choices and debugging
+```{r process_data, message=FALSE, warning=FALSE}
+soil@data$MapUnitNumeric <-  as.numeric(as.character(soil@data$MapUnit))
+
+soil_raster <- rasterize(soil, r, field = 'MapUnitNumeric')
+plot(soil_raster)
+writeRaster(soil_raster, filename="soil_final.asc", format="ascii",overwrite=TRUE)
+```
+
+4) Combing into one code chunk and rudimentary function
+```{r processing_function, message=FALSE, warning=FALSE, paged.print=FALSE}
+### Combing all into one code chunk and one function
+
+# Read-in data -- Currently ias spatial polygon
+soil <- readOGR('Soil','soils_AEA')
+
+# Define raster characteristics
+ext <- extent(-42125.836,158214.164,-578083.334,-437413.334)
+gridsize <- 100
+r <- raster(ext, res=gridsize)
+
+# Attribute to rasterize by must be numeric or character - Here, changing factor to character to numeric. 
+soil@data$MapUnitNumeric <-  as.numeric(as.character(soil@data$MapUnit))
+
+# Starting to write function to process data -- will be more standardize for climate projection variables.
+
+# Define simple function
+data_prep <- function(data){
+  raster <- rasterize (data, r, field = 'MapUnitNumeric')
+  writeRaster(raster, filename="soil_final.asc",format = "ascii", overwrite=TRUE)
+}
+
+# Use function with soil data
+data_prep(soil)
+
+# Still need to figure out how to prep climate data, read in climate data, or include commands in the function that simplify the read in and prep in this code
+```
+
