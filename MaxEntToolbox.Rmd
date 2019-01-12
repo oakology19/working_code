@@ -43,7 +43,7 @@ Load Packages
 
 ```{r packages, message=FALSE}
 
-
+#If packages missing use install.packages("packagename")
 library(tidyverse)
 library(sf)
 library(raster)
@@ -127,6 +127,29 @@ Oak Combined and Individual
 Climate
 
 ```{r}
+
+#For for looping use:
+  #file.path("") for the file path
+  #read_sf for reading shapefile
+  #something like list.files(variable_path, pattern='tif$', full.names=TRUE ) for files within
+  #Stack climate tif files into a RasterStack: climate <- stack(variables)
+  #Define projections: crs(climate) <- CRS('+init=epsg:3310'
+  #crop(climate, extent)
+  #No need to resample
+  ## Convert Climate to Ascii for MaxEnt
+
+# #unstack to list
+# x <- unstack(climate)
+# 
+# file.dir <- "H:/MaxEnt/ModLayers_SB_270/"
+# climate.variable.names <- c("aet","aprpck","cwd","pet","ppt","rch","run","tmn","tmx")
+# 
+# for(i in 1:length(x)) {
+#   
+#   fn <- paste0(file.dir,climate.variable.names[i],".asc")
+#   writeRaster(x[[i]],fn,format="ascii",overwrite=T)
+#   
+# }
 
 #For loop through extents 
   #For loop through projections

@@ -216,7 +216,8 @@ scenario&lt;-&quot;allisland_10m&quot;
 
 #Make combine sections based on extents chosen because greatly differs-otherwise just have a lot of if else statements</code></pre>
 <p>Load Packages</p>
-<pre class="r"><code>library(tidyverse)
+<pre class="r"><code>#If packages missing use install.packages(&quot;packagename&quot;)
+library(tidyverse)
 library(sf)
 library(raster)
 #library(sp)
@@ -278,7 +279,30 @@ library(raster)
 #If one island than that island
 #if SRI subset then by the oak seed or sap category</code></pre>
 <p>Climate</p>
-<pre class="r"><code>#For loop through extents 
+<pre class="r"><code>#For for looping use:
+  #file.path(&quot;&quot;) for the file path
+  #read_sf for reading shapefile
+  #something like list.files(variable_path, pattern='tif$', full.names=TRUE ) for files within
+  #Stack climate tif files into a RasterStack: climate &lt;- stack(variables)
+  #Define projections: crs(climate) &lt;- CRS('+init=epsg:3310'
+  #crop(climate, extent)
+  #No need to resample
+  ## Convert Climate to Ascii for MaxEnt
+
+# #unstack to list
+# x &lt;- unstack(climate)
+# 
+# file.dir &lt;- &quot;H:/MaxEnt/ModLayers_SB_270/&quot;
+# climate.variable.names &lt;- c(&quot;aet&quot;,&quot;aprpck&quot;,&quot;cwd&quot;,&quot;pet&quot;,&quot;ppt&quot;,&quot;rch&quot;,&quot;run&quot;,&quot;tmn&quot;,&quot;tmx&quot;)
+# 
+# for(i in 1:length(x)) {
+#   
+#   fn &lt;- paste0(file.dir,climate.variable.names[i],&quot;.asc&quot;)
+#   writeRaster(x[[i]],fn,format=&quot;ascii&quot;,overwrite=T)
+#   
+# }
+
+#For loop through extents 
   #For loop through projections
     #For loop through climate variables
       #Extract climate variable by extent mask
