@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-This R Markdown script can be used to interpolate the climate variables for Santa Catalina to the entire extent of the island, as the island is missing BCM climate data for some of its extent. The island DEM was used for universal co-kriging. The model for loops through the climate layers for current climate and all future climate projections and time periods, and saves the interpolated climate layers in a new folder for input into the ArcGIS data processing model. The layers can be resampled to either cell size 10 or 100 meters (or other), which can be selected in the script.
+This R Markdown script can be used to interpolate the climate variables for Santa Catalina to the entire extent of the island, as the island is missing BCM climate data for some of its extent. The island DEM was used for universal co-kriging. The model for loops through the climate layers for current climate and all future climate projections and time periods, and saves the interpolated climate layers in a new folder for input into the ArcGIS data processing model. The layers were resampled to 270m, which can be selected in the script.
 
 A big thanks to Allison Horst and her ESM 244 Data Analysis class for teaching us kriging.
 
@@ -17,12 +17,12 @@ A big thanks to Allison Horst and her ESM 244 Data Analysis class for teaching u
 #Make sure all packages installed before running- use install.packages("packagename") if necessary
 library(tidyverse) #datascience package
 library(raster) #raster library
-library(sf)
+library(sf) #spatial
 library(sp) #more spatial
 library(gstat) #For geospatial statistics
 library(rgdal) #spatial library 
 library(dplyr) #data wrangling  
-library(rgeos)
+library(rgeos) #open source
 
 
 #Define directories and files and pre-processing
@@ -41,8 +41,7 @@ extent(ras) <- extent(CI_extent)
 CI_ras <- rasterize(CI_extent, ras, 'ShpAreaSqM')
 proj4string(CI_ras)<-CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
 
-#CI_ras_res<-raster("G:/data/islands/sca/sca_extent/scaext_alb.tif")#resample for cell size 10x10
-CI_ras_res<-raster("G:/data/islands/sca/sca_extent/scaext_alb100.tif")#resample for cell size 100x100
+CI_ras_res<-raster("G:/data/islands/sca/sca_extent/scaext_alb270.tif")#resample for cell size 270x270
 CI_resamp<-raster::resample(CI_ras, CI_ras_res)
 
 
@@ -58,7 +57,7 @@ gridded(Grid) = TRUE
 proj4string(Grid) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
 
 #Extract from DEM for the GRID
-Grid_DEM<-raster::extract(DEM_sca, Grid) #takes awhile to run since 10x10
+Grid_DEM<-raster::extract(DEM_sca, Grid)
 Grid_sp<-Grid
 Grid_sp$DEM<-Grid_DEM
 
