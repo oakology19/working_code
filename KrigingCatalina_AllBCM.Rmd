@@ -1,6 +1,8 @@
 ---
 title: "KrigingCatalina_AllBCM"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +14,7 @@ This R Markdown script can be used to interpolate the climate variables for Sant
 
 A big thanks to Allison Horst and her ESM 244 Data Analysis class for teaching us kriging.
 
-```{r}
+```{r krige}
 
 #Make sure all packages installed before running- use install.packages("packagename") if necessary
 library(tidyverse) #datascience package
@@ -96,8 +98,7 @@ files <- list.files(path = dsn_bcm, pattern = "\\.tif$")
   
   proj4string(BCM_krige)<-CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
   
-  setwd(paste0("G:/data/climate/GIS_Input_SCAInterpolated/", basename(f)))
-  writeGDAL(BCM_krige, fname=c, drivername="GTiff")
+  writeGDAL(BCM_krige, fname=paste0("G:/data/climate/GIS_Input_SCAInterpolated/", basename(f), "/", c), drivername="GTiff")
   
   }#end c for loop
 } #end f for loop
