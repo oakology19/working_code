@@ -1,5 +1,5 @@
 ---
-title: "Data Processing"
+title: "MaxEnt Toolbox"
 author: "Oakology"
 date: "January 11, 2019"
 output: html_document
@@ -11,9 +11,40 @@ knitr::opts_chunk$set(echo = TRUE)
 
 CHECK
 
-```{r packages}
+Scenario Selection
 
+```{r extent_selection}
 
+#Change scenario- one thing to change throughout
+scenario<-"allisland_10m"
+
+#options:
+#ai_270m
+#ni_270m
+#sca_270m
+#sca_int_270m
+#scr_270m
+#sri_270m
+#sri_adultyoung_270m
+#sri_seedsap_270m
+#ni_fog_270m?
+#scr_fog_270m
+#sri_fog_270m
+#sri_fog_adultyoung_270m
+#sri_fog_seedsap_270m
+
+#Slope ones?
+#Historic ranches?
+
+#Make combine sections based on extents chosen because greatly differs-otherwise just have a lot of if else statements
+
+```
+
+Load Packages
+
+```{r packages, message=FALSE}
+
+#If packages missing use install.packages("packagename")
 library(tidyverse)
 library(sf)
 library(raster)
@@ -25,6 +56,7 @@ library(raster)
 ```
 
 
+
 Extent
 
 ```{r}
@@ -32,9 +64,9 @@ Extent
 extent_name<-"allisland_10m"
 
 #Island Outline and Extent
-island_outline<-"G:\data\islands\all_islands\Channel_Islands_CUSP\Channel_Islands_CUSP_Teale_Albers\Channel_Islands_CUSP_Teale_Albers.shp"
+#island_outline<-"G:\data\islands\all_islands\Channel_Islands_CUSP\Channel_Islands_CUSP_Teale_Albers\Channel_Islands_CUSP_Teale_Albers.shp"
 
-extent<-"G:\data\climate\GISModel_Input\historic\cwd1981_2010_ave_HST_1539127145.tif"
+#extent<-"G:\data\climate\GISModel_Input\historic\cwd1981_2010_ave_HST_1539127145.tif"
 
 #Extract by Mask
 #Input Extent with mask of island outline
@@ -52,15 +84,17 @@ Oak Combined and Individual
 
 ```{r}
 #Oak Points
-SCAOakPoints<-"G:\data\islands\sca\Quertome\SCAOakPoints_AEA.shp"
+#Make sure oak points made first
 
-SRIOakPoints<-"G:\data\islands\sri\OakPoint\SRI_OakPoints_AEA.shp"
+#SCAOakPoints<-"G:\data\islands\sca\Quertome\SCAOakPoints_AEA.shp"
+
+#SRIOakPoints<-"G:\data\islands\sri\OakPoint\SRI_OakPoints_AEA.shp"
   
-SCROakPoints<-"G:\data\islands\scr\OakPoint\SCROakPoints_AEA.shp"
+#SCROakPoints<-"G:\data\islands\scr\OakPoint\SCROakPoints_AEA.shp"
 
 #Merge all the oak points and save as below shape file
 
-merge_all_oak<-"G:\data\islands\MaxEnt\Processing\Oak\merge_all_oak.shp"
+#merge_all_oak<-"G:\data\islands\MaxEnt\Processing\Oak\merge_all_oak.shp"
 
 #Add xy coordinates
 
@@ -76,7 +110,16 @@ merge_all_oak<-"G:\data\islands\MaxEnt\Processing\Oak\merge_all_oak.shp"
 #Save to Oak Workspace plus output table
 
 
+#Also create options for oak points individuals
 
+#comebine based on scenario
+
+#Maybe for loop?
+
+#if all islands then merge all three
+#if north islands combine two
+#If one island than that island
+#if SRI subset then by the oak seed or sap category
 
 ```
 
@@ -84,8 +127,95 @@ merge_all_oak<-"G:\data\islands\MaxEnt\Processing\Oak\merge_all_oak.shp"
 
 Climate
 
+```{r}
+
+#For for looping use:
+  #file.path("") for the file path
+  #read_sf for reading shapefile
+  #something like list.files(variable_path, pattern='tif$', full.names=TRUE ) for files within
+  #Stack climate tif files into a RasterStack: climate <- stack(variables)
+  #Define projections: crs(climate) <- CRS('+init=epsg:3310'
+  #crop(climate, extent)
+  #No need to resample
+  ## Convert Climate to Ascii for MaxEnt
+
+# #unstack to list
+# x <- unstack(climate)
+# 
+# file.dir <- "H:/MaxEnt/ModLayers_SB_270/"
+# climate.variable.names <- c("aet","aprpck","cwd","pet","ppt","rch","run","tmn","tmx")
+# 
+# for(i in 1:length(x)) {
+#   
+#   fn <- paste0(file.dir,climate.variable.names[i],".asc")
+#   writeRaster(x[[i]],fn,format="ascii",overwrite=T)
+#   
+# }
+
+#For loop through extents 
+  #For loop through projections
+    #For loop through climate variables
+      #Extract climate variable by extent mask
+        #Use crop (climate, extent)
+      #Save as asc raster-just write raster as type asc
+        #Ex: writeRaster(bd.f,paste0("C:/RAIDa/sparc_focal/NT/",focal[i],"/Climate_Soils_ASC/30s/",gcms[j],"/",decades[k],"/bulkdensity.asc"),overwrite=TRUE)
+        #Save to G:\data\climate\MEInput\allislands_100m\historic except substitue in extent and projection and then include climate variable name
+
+```
+
+
 
 Island
 
+```{r}
+
+#Write these out by not using them??? Make them all but then only carry over to MaxEnt folders the files being used-change that in BCM_organization script, slash add BCM_organization script here
+
+#For loop throug
+
+#Soils-take what Claire has?
+#Polygon to raster, crop by extent, save as raster asc
+
+#DEM
+#Merge if all islands otherwise keep separate?-mosaic to new raster
+#Crop by extent 
+#calculate Slope, Aspect
+#Save all three as new DEMs
+
+#Vegetation
+#Make sure vegetation scripts run first and vegetation groups made
+#Polygon to Raster for each island
+#Merge if all islands otherwise keep separate-mosaic to new raster for ai or ni
+#Crop by extent
+#Write asc raster
+
+
+```
+
+
 
 Fog
+
+```{r}
+
+#Based on extent since only performing these for fog extent options
+
+#Take fog layers-have to figure out how stored and how can for loop through
+#Crop by extent
+#Write asc raster for those fog options
+
+```
+
+
+
+Organization
+
+```{r}
+
+#Copy over code from BCM_organization but add in for all options made above but can select which of the variables actually should be carried over based on our decisions
+#And based on scenario-some have fog and others dont and difference in oak points
+
+
+
+```
+
