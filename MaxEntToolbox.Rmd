@@ -9,14 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-CHECK
 
 Scenario Selection
 
 ```{r extent_selection}
 
 #Change scenario- one thing to change throughout
-scenario<-"allisland_10m"
+scenario<-"sca_270m"
 
 #options:
 #ai_270m
@@ -32,6 +31,7 @@ scenario<-"allisland_10m"
 #sri_fog_270m
 #sri_fog_adultyoung_270m
 #sri_fog_seedsap_270m
+#MainlandCA
 
 #Slope ones?
 #Historic ranches?
@@ -48,8 +48,8 @@ Load Packages
 library(tidyverse)
 library(sf)
 library(raster)
-#library(sp)
-#library(rgdal)
+library(sp)
+library(rgdal)
 #library(maptools)
 #library(dismo)
 
@@ -59,14 +59,22 @@ library(raster)
 
 Extent
 
-```{r}
+```{r extent}
 
-extent_name<-"allisland_10m"
+#Create scenario extent that will be used throughout the rest of the processes, based off the minimum BCM data available as well as the Channel Island CUSP outlines
 
-#Island Outline and Extent
-#island_outline<-"G:\data\islands\all_islands\Channel_Islands_CUSP\Channel_Islands_CUSP_Teale_Albers\Channel_Islands_CUSP_Teale_Albers.shp"
+#If else statements for scenarios
 
-#extent<-"G:\data\climate\GISModel_Input\historic\cwd1981_2010_ave_HST_1539127145.tif"
+island_outlines<-read_sf("G:/data/islands/all_islands/Channel_Islands_CUSP/Channel_Islands_CUSP_Teale_Albers/Channel_Islands_CUSP_Teale_Albers.shp")
+
+min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+
+crop <- crop(r, extent(island_outlines))
+extent <- mask(r2, SPDF)
+
+## Check that it worked
+plot(r3)
+extent<-crop(mask, island_outlines)
 
 #Extract by Mask
 #Input Extent with mask of island outline
@@ -75,7 +83,8 @@ extent_name<-"allisland_10m"
 #Resample-Remove step
 #Take masked extent and make output raster dataset G:\data\islands\MaxEnt\Extent\%Name%.tif with output cell size of 270by270 using nearest resampling technique
 
-#save final file as G:\data\islands\MaxEnt\Extent\%Name%.tif
+#save final file as 
+paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif")
 
 ```
 
@@ -128,6 +137,11 @@ Oak Combined and Individual
 Climate
 
 ```{r}
+
+path<-G:\data\climate\GISModel_Input
+#Within that is the historic, etc-where there are the four climate variables
+
+#If its the interpolated version then need to pull from G:\data\climate\GIS_Input_SCAInterpolated
 
 #For for looping use:
   #file.path("") for the file path
