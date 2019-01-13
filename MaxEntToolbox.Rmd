@@ -15,10 +15,10 @@ Scenario Selection
 ```{r extent_selection}
 
 #Change scenario- one thing to change throughout
-scenario<-"sca_270m"
+scenario<-"MainlandCA"
 
 #options:
-#ai_270m
+#allislands_270m
 #ni_270m
 #sca_270m
 #sca_int_270m
@@ -26,7 +26,6 @@ scenario<-"sca_270m"
 #sri_270m
 #sri_adultyoung_270m
 #sri_seedsap_270m
-#ni_fog_270m?
 #scr_fog_270m
 #sri_fog_270m
 #sri_fog_adultyoung_270m
@@ -63,28 +62,43 @@ Extent
 
 #Create scenario extent that will be used throughout the rest of the processes, based off the minimum BCM data available as well as the Channel Island CUSP outlines
 
-#If else statements for scenarios
+#If else statements for scenarios: read in the correct data for each scenario
+if (scenario=="allislands_270m"){
+  #All Islands
+  scenario_extent<-read_sf("G:/data/islands/all_islands/Channel_Islands_CUSP/Channel_Islands_CUSP_Teale_Albers/Channel_Islands_CUSP_Teale_Albers.shp")
+  min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+}else if (scenario=="ni_270m"){
+  #Northern Islands
+  scenario_extent<-read_sf("G:/data/islands/all_islands/ni_outline/ni_outline.shp")
+  min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+}else if (scenario=="scr_270m"|scenario=="scr_fog_270m"){
+  #Santa Cruz
+  scenario_extent<-read_sf("G:/data/islands/scr/scr_extent/scr_extent.shp")
+  min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
+  #Santa Rosa
+  scenario_extent<-read_sf("G:/data/islands/sri/sri_extent/sri_extent.shp")
+  min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+}else if (scenario=="sca_270m"){
+  #Santa Catalina
+  scenario_extent<-read_sf("G:/data/islands/sca/sca_extent/sca_extent.shp")
+  min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+}else if (scenario=="sca_int_270m"){
+  #Santa Catalina Interpolated
+  scenario_extent<-read_sf("G:/data/islands/sca/sca_extent/sca_extent.shp")
+  min_data<-raster("G:/data/climate/GIS_Input_SCAInterpolated/historic/cwd1981_2010_ave_HST_1539127145.tif")
+}else if (scenario=="MainlandCA"){
+  #Mainland CA
+  scenario_extent<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+  min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
+}else
+  print ("No Scenario Selected")
 
-island_outlines<-read_sf("G:/data/islands/all_islands/Channel_Islands_CUSP/Channel_Islands_CUSP_Teale_Albers/Channel_Islands_CUSP_Teale_Albers.shp")
+cropped <- crop(min_data, extent(scenario_extent)) #Crop to extent of outlines
+extent <- mask(cropped, scenario_extent) #Mask to the exact island outline(s)
+writeRaster(extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"), overwrite=TRUE)#write extent raster
 
-min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
-
-crop <- crop(r, extent(island_outlines))
-extent <- mask(r2, SPDF)
-
-## Check that it worked
-plot(r3)
-extent<-crop(mask, island_outlines)
-
-#Extract by Mask
-#Input Extent with mask of island outline
-#Save as G:\data\islands\MaxEnt\Processing\Extent\maskedextent.tif
-
-#Resample-Remove step
-#Take masked extent and make output raster dataset G:\data\islands\MaxEnt\Extent\%Name%.tif with output cell size of 270by270 using nearest resampling technique
-
-#save final file as 
-paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif")
+#Extent will be used throughout Script. Will call in the extent each time just to be careful.
 
 ```
 
