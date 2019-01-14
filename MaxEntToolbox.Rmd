@@ -26,10 +26,10 @@ scenario<-"allislands_270m"
 #sri_270m
 #sri_adultyoung_270m
 #sri_seedsap_270m
-#scr_fog_270m
-#sri_fog_270m
-#sri_fog_adultyoung_270m
-#sri_fog_seedsap_270m
+#scr_foginc_270m
+#scr_fogdec_270m
+#sri_foginc_270m
+#sri_fogdec_270m
 #MainlandCA
 
 #Slope ones?
@@ -71,11 +71,11 @@ if (scenario=="allislands_270m"){
   #Northern Islands
   scenario_extent<-read_sf("G:/data/islands/all_islands/ni_outline/ni_outline.shp")
   min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
-}else if (scenario=="scr_270m"|scenario=="scr_fog_270m"){
+}else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"){
   #Santa Cruz
   scenario_extent<-read_sf("G:/data/islands/scr/scr_extent/scr_extent.shp")
   min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
-}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
+}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"){
   #Santa Rosa
   scenario_extent<-read_sf("G:/data/islands/sri/sri_extent/sri_extent.shp")
   min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
@@ -106,52 +106,46 @@ writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scena
 Oak Combined and Individual ***Come back to this
 
 ```{r}
-#Oak Points
+#Read in Oak Points
+sca_oaks<-read_sf("G:/data/islands/sca/Quertome/SCAOakPoints_AEA.shp")
+sca_xy<-st_coordinates(sca_oaks)
+sri_oaks<-read_sf("G:/data/islands/sri/OakPoint/SRI_OakPoints_Updated.shp")
+sri_xy<-st_coordinates(sri_oaks)
+scr_oaks<-read_sf("G:/data/islands/scr/OakPoint/scr_calscape_oaks.shp")
+scr_xy<-st_coordinates(scr_oaks)
 
 #If else statements for scenarios: read in the correct data for each scenario
 if (scenario=="allislands_270m"){
   #All Islands
-  
+  all_oaks<-rbind(sca_xy,sri_xy,scr_xy)
 }else if (scenario=="ni_270m"){
   #Northern Islands
- 
-}else if (scenario=="scr_270m"|scenario=="scr_fog_270m"){
+ all_oaks<-rbind(sri_xy,scr_xy)
+}else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"){
   #Santa Cruz
-
-}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
+all_oaks<-scr_xy
+}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"){
   #Santa Rosa
-
+all_oaks<-sri_xy
 }else if (scenario=="sca_270m"){
   #Santa Catalina
-
+all_oaks<-sca_xy
 }else if (scenario=="sca_int_270m"){
   #Santa Catalina Interpolated
-
+all_oaks<-sca_xy
 }else if (scenario=="MainlandCA"){
   #Mainland CA
-
+all_oaks<-rbind(sca_xy,sri_xy,scr_xy)
 }else
   print ("No Scenario Selected")
 
 
-#Read in Oak Points
-sca_oaks<-read_sf("G:/data/islands/sca/Quertome/SCAOakPoints_AEA.shp")
-sri_oaks<-read_sf("G:/data/islands/sri/OakPoint/SRI_OakPoints_AEA.shp")
-scr_oaks<-read_sf("G:/data/islands/scr/OakPoint/SCROakPoints_AEA.shp")
-#Merge all the oak points and save as below shape file
-all_oaks<-st_union(sca_oaks, sri_oaks, scr_oaks)
-write_sf(all_oaks, filename="G:/data/islands/MaxEnt/Processing/Oak/all_oaks.shp", overwrite=TRUE)
+alloaks<-as.data.frame(all_oaks)
+alloaks$Species<-"Quercus tomentella"
+Oaks<-alloaks[,c(3,1,2)]
 
-oaksxy <- coordinates(all_oaks)
-oaksxy$Species<-"Quercus tomentella"
+#Export to csv
 
-
-
-#Add field called Species
-#Calulate Field- fill with "quercus tomentella"
-
-
-#Table to Table
 
 #OakWorkspace<-G:\data\islands\MaxEnt\MEInputOak\all_islands_100m
 #OutputTable<-OakPoints.csv
@@ -223,17 +217,6 @@ scen_extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
 crs(scen_extent)<-CRS('+init=epsg:3310') 
 
 
-
-#DEM
-#Merge if all islands otherwise keep separate?-mosaic to new raster
-#Crop by extent 
-#calculate Slope, Aspect
-#Save all three as new DEMs
-
-
-
-   
-
 #Soils
   soilshp<-read_sf("G:/data/islands/all_islands/Soil/soils_AEA.shp")
   ext<-extent(scen_extent)
@@ -246,27 +229,7 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
   writeRaster(soils,paste0(island_fn, "soilclasses.asc"),format="ascii",overwrite=T)
   
 
-#DEM THE STRUGGLE
-  ai_dem<-raster("G:/data/islands/all_islands/DEM/ai_dem270.tif")
-  scr_dem<-raster("G:/data/islands/all_islands/DEM/scr_dem270.tif")
-  sri_dem<-raster("G:/data/islands/all_islands/DEM/sri_dem270.tif")
-  smi_dem<-raster("G:/data/islands/all_islands/DEM/smi_dem270.tif")
-  sca_dem<-raster("G:/data/islands/sca/DEM/sca_dem_alb/sca_dem_alb270.tif")
-  all_dem<-merge(ai_dem, scr_dem, sri_dem, smi_dem, sca_dem, tolerance=0.5)#Accepts different origins
-  #all_dem<-raster("G:/data/islands/all_islands/DEM/all_dem270.tif") #Combined all DEMS at 270 in GIS with mosaic to new raster because much quicker and save across all projects
-  crs(all_dem)<-CRS('+init=epsg:3310')
-  #Figure out cropping and masking issue 
-  dem_crop <- crop(all_dem, scen_extent) #Crop to extent of outlines
-  dem <- mask(dem_crop, scen_extent) #Mask to the exact island outline(s)
-  writeRaster(dem,paste0(island_fn, "DEM.asc"),format="ascii",overwrite=T)
-
-  #Slope
-  all_terrain<-terrain(all_dem, opt=c('slope', 'aspect'), unit='degrees')
-  writeRaster(Slope,paste0(island_fn, "Slope.asc"),format="ascii",overwrite=T)
-#Aspect
-  writeRaster(Aspect,paste0(island_fn, "Aspect.asc"),format="ascii",overwrite=T)
-
-#Vegetation: Made by VegetationMapGrouping.Rmd
+  #Vegetation: Made by VegetationMapGrouping.Rmd
   #SCR
     scr_vegpshp<-read_sf("G:/data/islands/scr/SCRVegMapClass/SCRVegMapClass.shp")
     scr_vegr <- raster(extent(scen_extent), res=270)
@@ -287,6 +250,29 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
     veg_crop <- crop(all_veg, extent(scen_extent)) #Crop to extent of outlines
     veg <- mask(veg_crop, scen_extent) #Mask to the exact island outline(s)
     writeRaster(veg,paste0(island_fn, "veg.asc"),format="ascii",overwrite=T)
+    
+    
+#DEM THE STRUGGLE-Come back and fix
+  ai_dem<-raster("G:/data/islands/all_islands/DEM/ai_dem270.tif")
+  scr_dem<-raster("G:/data/islands/all_islands/DEM/scr_dem270.tif")
+  sri_dem<-raster("G:/data/islands/all_islands/DEM/sri_dem270.tif")
+  smi_dem<-raster("G:/data/islands/all_islands/DEM/smi_dem270.tif")
+  sca_dem<-raster("G:/data/islands/sca/DEM/sca_dem_alb/sca_dem_alb270.tif")
+  all_dem<-merge(ai_dem, scr_dem, sri_dem, smi_dem, sca_dem, tolerance=0.5)#Accepts different origins
+  #all_dem<-raster("G:/data/islands/all_islands/DEM/all_dem270.tif") #Combined all DEMS at 270 in GIS with mosaic to new raster because much quicker and save across all projects
+  crs(all_dem)<-CRS('+init=epsg:3310')
+  #Figure out cropping and masking issue 
+  dem_crop <- crop(all_dem, scen_extent) #Crop to extent of outlines
+  dem <- mask(dem_crop, scen_extent) #Mask to the exact island outline(s)
+  writeRaster(dem,paste0(island_fn, "DEM.asc"),format="ascii",overwrite=T)
+
+  #Slope
+  all_terrain<-terrain(all_dem, opt=c('slope', 'aspect'), unit='degrees')
+  writeRaster(Slope,paste0(island_fn, "Slope.asc"),format="ascii",overwrite=T)
+#Aspect
+  writeRaster(Aspect,paste0(island_fn, "Aspect.asc"),format="ascii",overwrite=T)
+
+
 
 
 ```
@@ -312,6 +298,15 @@ if (scenario=="scr_fog_270m"){
 
 }else
   print ("No Fog Data Available")
+
+
+SRI:
+G:\data\tools\MaxEnt\Input\sri_100m_fog\historic\layers
+
+SCR:
+G:\data\tools\MaxEnt\Input\scr_100m_fog\historic\layer
+
+
 
 
 ```
