@@ -15,7 +15,7 @@ Scenario Selection
 ```{r extent_selection}
 
 #Change scenario- one thing to change throughout
-scenario<-"MainlandCA"
+scenario<-"allislands_270m"
 
 #Options:
 #allislands_270m
@@ -95,8 +95,8 @@ if (scenario=="allislands_270m"){
   print ("No Scenario Selected")
 
 cropped <- crop(min_data, extent(scenario_extent)) #Crop to extent of outlines
-extent <- mask(cropped, scenario_extent) #Mask to the exact island outline(s)
-writeRaster(extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"), overwrite=TRUE)#write extent raster
+scen_extent <- mask(cropped, scenario_extent) #Mask to the exact island outline(s)
+writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"), overwrite=TRUE)#write extent raster
 
 #Extent will be used throughout Script. Will call in the extent each time just to be careful.
 
@@ -177,26 +177,21 @@ if (scenario=="allislands_270m"){
 
 
 
-Climate
+Climate  
+#Ran them all except for Mainland CA-issue with historic about extents
 
 ```{r}
 
 
-scenarios<-c("ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_fog_270m","sri_fog_270m","sri_fog_adultyoung_270m","sri_fog_seedsap_270m","MainlandCA")
-
-for(scen in scenarios){
-print(scen)
- scenario<-scen
-
 if (scenario=="sca_int_270m"){
-  #Santa Catalina Interpolated
+  #Santa Catalina Interpolated: Made by KrigingCatalina_AllBCM.Rmd
   clim_dirs<-list.dirs(path="G:/data/climate/GIS_Input_SCAInterpolated", full.names=F, recursive=F)
 }else
 clim_dirs<-list.dirs(path="G:/data/climate/GISModel_Input", full.names=T, recursive=F)
 
 #Call in appropriate extent
-extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
-crs(extent)<-CRS('+init=epsg:3310') 
+scen_extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
+crs(scen_extent)<-CRS('+init=epsg:3310') 
  
 for (clim in clim_dirs){
   #print (clim) #For loop through climate projections
@@ -205,29 +200,32 @@ for (clim in clim_dirs){
     #print (var)#For loop through climate variables
     clim_ras<-raster(var)
     crs(clim_ras)<-CRS('+init=epsg:3310')
-    clim_crop <- crop(clim_ras, extent(extent)) #Crop to extent of outlines
-    climate <- mask(clim_crop, extent) #Mask to the exact island outline(s)
+    clim_crop <- crop(clim_ras, extent(scen_extent)) #Crop to extent of outlines
+    climate <- mask(clim_crop, scen_extent) #Mask to the exact island outline(s)
     fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/", file_path_sans_ext(basename(var)), ".asc")
     writeRaster(climate,fn,format="ascii",overwrite=T)
   }#End for loop through climate variables
 }#End for loop through climate projections
 
-}#Running all the scenarios at once
 
 ```
 
 
 
 Island
+#Need to finish up DEM issues, calculate slope and aspect, and then run all of these for each scenario 
 
 ```{r}
 
-#Write these out by not using them??? Make them all but then only carry over to MaxEnt folders the files being used-change that in BCM_organization script, slash add BCM_organization script here
+#For MainlandCA set this all to NULL
 
-#For loop throug
+#Set final directory
+island_fn<-paste0("G:/data/islands/MaxEnt/MEInput/", scenario, "/")
+#Call in appropriate extent
+scen_extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
+crs(scen_extent)<-CRS('+init=epsg:3310') 
 
-#Soils-take what Claire has?
-#Polygon to raster, crop by extent, save as raster asc
+
 
 #DEM
 #Merge if all islands otherwise keep separate?-mosaic to new raster
@@ -235,38 +233,56 @@ Island
 #calculate Slope, Aspect
 #Save all three as new DEMs
 
-#Vegetation
-#Make sure vegetation scripts run first and vegetation groups made
-#Polygon to Raster for each island
-#Merge if all islands otherwise keep separate-mosaic to new raster for ai or ni
-#Crop by extent
-#Write asc raster
 
-#If else statements for scenarios: read in the correct data for each scenario
-if (scenario=="allislands_270m"){
-  #All Islands
+
+   
+
+#Soils
+  soilshp<-read_sf("G:/data/islands/all_islands/Soil/soils_AEA.shp")
+  ext<-extent(scen_extent)
+  gridsize <- 270
+  soilr <- raster(ext, res=gridsize)
+  soilras <- rasterize(soilshp, soilr, field = 'MapUnit')
+  crs(soilras)<-CRS('+init=epsg:3310')
+  soil_crop <- crop(soilras, extent(scen_extent)) #Crop to extent of outlines
+  soils <- mask(soil_crop, scen_extent) #Mask to the exact island outline(s)
+  writeRaster(soils,paste0(island_fn, "soilclasses.asc"),format="ascii",overwrite=T)
   
-}else if (scenario=="ni_270m"){
-  #Northern Islands
- 
-}else if (scenario=="scr_270m"|scenario=="scr_fog_270m"){
-  #Santa Cruz
 
-}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
-  #Santa Rosa
+#DEM 
+  all_dem<-raster("G:/data/islands/all_islands/DEM/all_dem.tif") #Combined all DEMS at 270 in GIS with mosaic to new raster because much quicker and save across all projects
+  crs(all_dem)<-CRS('+init=epsg:3310')
+  #Figure out cropping and masking issue 
+  dem_crop <- crop(all_dem, extent(scen_extent)) #Crop to extent of outlines
+  dem <- mask(dem_crop, scen_extent) #Mask to the exact island outline(s)
+  writeRaster(dem,paste0(island_fn, "DEM.asc"),format="ascii",overwrite=T)
 
-}else if (scenario=="sca_270m"){
-  #Santa Catalina
+  #Slope
+  writeRaster(Slope,paste0(island_fn, "Slope.asc"),format="ascii",overwrite=T)
+#Aspect
+  writeRaster(Aspect,paste0(island_fn, "Aspect.asc"),format="ascii",overwrite=T)
 
-}else if (scenario=="sca_int_270m"){
-  #Santa Catalina Interpolated
-
-}else if (scenario=="MainlandCA"){
-  #Mainland CA
-
-}else
-  print ("No Scenario Selected")
-
+#Vegetation: Made by VegetationMapGrouping.Rmd
+  #SCR
+    scr_vegpshp<-read_sf("G:/data/islands/scr/SCRVegMapClass/SCRVegMapClass.shp")
+    scr_vegr <- raster(extent(scen_extent), res=270)
+    scr_vegras <- rasterize(scr_vegpshp, scr_vegr, field = 'Value')
+    crs(scr_vegras)<-CRS('+init=epsg:3310')
+  #NI
+    ni_vegpshp<-read_sf("G:/data/islands/all_islands/Channel_Islands_Veg_Map_2017/NIVegMapClass/NIVegMapClass.shp")
+    ni_vegr <- raster(extent(scen_extent), res=270)
+    ni_vegras <- rasterize(ni_vegpshp, ni_vegr, field = 'Value')
+    crs(ni_vegras)<-CRS('+init=epsg:3310')
+  #SCA
+    sca_vegpshp<-read_sf("G:/data/islands/sca/SCAVegMapClass/SCAVegMapClass.shp")
+    sca_vegr <- raster(extent(scen_extent), res=270)
+    sca_vegras <- rasterize(sca_vegpshp, sca_vegr, field = 'Value')
+    crs(sca_vegras)<-CRS('+init=epsg:3310')
+  #Merge to New Raster
+    all_veg<-merge(scr_vegras, ni_vegras, sca_vegras)
+    veg_crop <- crop(all_veg, extent(scen_extent)) #Crop to extent of outlines
+    veg <- mask(veg_crop, scen_extent) #Mask to the exact island outline(s)
+    writeRaster(veg,paste0(island_fn, "veg.asc"),format="ascii",overwrite=T)
 
 
 ```
