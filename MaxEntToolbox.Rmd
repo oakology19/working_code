@@ -17,7 +17,7 @@ Scenario Selection
 #Change scenario- one thing to change throughout
 scenario<-"MainlandCA"
 
-#options:
+#Options:
 #allislands_270m
 #ni_270m
 #sca_270m
@@ -49,11 +49,11 @@ library(sf)
 library(raster)
 library(sp)
 library(rgdal)
+library(tools)
 #library(maptools)
 #library(dismo)
 
 ```
-
 
 
 Extent
@@ -103,10 +103,39 @@ writeRaster(extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scenario, 
 ```
 
 
-Oak Combined and Individual
+Oak Combined and Individual ***Come back to this
 
 ```{r}
 #Oak Points
+
+#If else statements for scenarios: read in the correct data for each scenario
+if (scenario=="allislands_270m"){
+  #All Islands
+  
+}else if (scenario=="ni_270m"){
+  #Northern Islands
+ 
+}else if (scenario=="scr_270m"|scenario=="scr_fog_270m"){
+  #Santa Cruz
+
+}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
+  #Santa Rosa
+
+}else if (scenario=="sca_270m"){
+  #Santa Catalina
+
+}else if (scenario=="sca_int_270m"){
+  #Santa Catalina Interpolated
+
+}else if (scenario=="MainlandCA"){
+  #Mainland CA
+
+}else
+  print ("No Scenario Selected")
+
+
+
+
 #Make sure oak points made first
 
 #SCAOakPoints<-"G:\data\islands\sca\Quertome\SCAOakPoints_AEA.shp"
@@ -152,42 +181,38 @@ Climate
 
 ```{r}
 
-path<-G:\data\climate\GISModel_Input
-#Within that is the historic, etc-where there are the four climate variables
 
-#If its the interpolated version then need to pull from G:\data\climate\GIS_Input_SCAInterpolated
+scenarios<-c("ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_fog_270m","sri_fog_270m","sri_fog_adultyoung_270m","sri_fog_seedsap_270m","MainlandCA")
 
-#For for looping use:
-  #file.path("") for the file path
-  #read_sf for reading shapefile
-  #something like list.files(variable_path, pattern='tif$', full.names=TRUE ) for files within
-  #Stack climate tif files into a RasterStack: climate <- stack(variables)
-  #Define projections: crs(climate) <- CRS('+init=epsg:3310'
-  #crop(climate, extent)
-  #No need to resample
-  ## Convert Climate to Ascii for MaxEnt
+for(scen in scenarios){
+print(scen)
+ scenario<-scen
 
-# #unstack to list
-# x <- unstack(climate)
-# 
-# file.dir <- "H:/MaxEnt/ModLayers_SB_270/"
-# climate.variable.names <- c("aet","aprpck","cwd","pet","ppt","rch","run","tmn","tmx")
-# 
-# for(i in 1:length(x)) {
-#   
-#   fn <- paste0(file.dir,climate.variable.names[i],".asc")
-#   writeRaster(x[[i]],fn,format="ascii",overwrite=T)
-#   
-# }
+if (scenario=="sca_int_270m"){
+  #Santa Catalina Interpolated
+  clim_dirs<-list.dirs(path="G:/data/climate/GIS_Input_SCAInterpolated", full.names=F, recursive=F)
+}else
+clim_dirs<-list.dirs(path="G:/data/climate/GISModel_Input", full.names=T, recursive=F)
 
-#For loop through extents 
-  #For loop through projections
-    #For loop through climate variables
-      #Extract climate variable by extent mask
-        #Use crop (climate, extent)
-      #Save as asc raster-just write raster as type asc
-        #Ex: writeRaster(bd.f,paste0("C:/RAIDa/sparc_focal/NT/",focal[i],"/Climate_Soils_ASC/30s/",gcms[j],"/",decades[k],"/bulkdensity.asc"),overwrite=TRUE)
-        #Save to G:\data\climate\MEInput\allislands_100m\historic except substitue in extent and projection and then include climate variable name
+#Call in appropriate extent
+extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
+crs(extent)<-CRS('+init=epsg:3310') 
+ 
+for (clim in clim_dirs){
+  #print (clim) #For loop through climate projections
+  clim_vars<-list.files(clim, pattern='tif$', full.names=TRUE )
+  for (var in clim_vars){
+    #print (var)#For loop through climate variables
+    clim_ras<-raster(var)
+    crs(clim_ras)<-CRS('+init=epsg:3310')
+    clim_crop <- crop(clim_ras, extent(extent)) #Crop to extent of outlines
+    climate <- mask(clim_crop, extent) #Mask to the exact island outline(s)
+    fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/", file_path_sans_ext(basename(var)), ".asc")
+    writeRaster(climate,fn,format="ascii",overwrite=T)
+  }#End for loop through climate variables
+}#End for loop through climate projections
+
+}#Running all the scenarios at once
 
 ```
 
@@ -217,6 +242,32 @@ Island
 #Crop by extent
 #Write asc raster
 
+#If else statements for scenarios: read in the correct data for each scenario
+if (scenario=="allislands_270m"){
+  #All Islands
+  
+}else if (scenario=="ni_270m"){
+  #Northern Islands
+ 
+}else if (scenario=="scr_270m"|scenario=="scr_fog_270m"){
+  #Santa Cruz
+
+}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
+  #Santa Rosa
+
+}else if (scenario=="sca_270m"){
+  #Santa Catalina
+
+}else if (scenario=="sca_int_270m"){
+  #Santa Catalina Interpolated
+
+}else if (scenario=="MainlandCA"){
+  #Mainland CA
+
+}else
+  print ("No Scenario Selected")
+
+
 
 ```
 
@@ -231,6 +282,17 @@ Fog
 #Take fog layers-have to figure out how stored and how can for loop through
 #Crop by extent
 #Write asc raster for those fog options
+
+#If else statements for scenarios: read in the correct data for each scenario
+if (scenario=="scr_fog_270m"){
+  #All Islands
+  
+}else if (scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
+  #Santa Rosa
+
+}else
+  print ("No Fog Data Available")
+
 
 ```
 
