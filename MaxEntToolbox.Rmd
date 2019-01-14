@@ -65,7 +65,7 @@ Extent
 #If else statements for scenarios: read in the correct data for each scenario
 if (scenario=="allislands_270m"){
   #All Islands
-  scenario_extent<-read_sf("G:/data/islands/all_islands/Channel_Islands_CUSP/Channel_Islands_CUSP_Teale_Albers/Channel_Islands_CUSP_Teale_Albers.shp")
+  scenario_extent<-read_sf("G:/data/islands/all_islands/extent/allislandsoutline.shp")
   min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
 }else if (scenario=="ni_270m"){
   #Northern Islands
@@ -134,21 +134,18 @@ if (scenario=="allislands_270m"){
   print ("No Scenario Selected")
 
 
-
-
-#Make sure oak points made first
-
-#SCAOakPoints<-"G:\data\islands\sca\Quertome\SCAOakPoints_AEA.shp"
-
-#SRIOakPoints<-"G:\data\islands\sri\OakPoint\SRI_OakPoints_AEA.shp"
-  
-#SCROakPoints<-"G:\data\islands\scr\OakPoint\SCROakPoints_AEA.shp"
-
+#Read in Oak Points
+sca_oaks<-read_sf("G:/data/islands/sca/Quertome/SCAOakPoints_AEA.shp")
+sri_oaks<-read_sf("G:/data/islands/sri/OakPoint/SRI_OakPoints_AEA.shp")
+scr_oaks<-read_sf("G:/data/islands/scr/OakPoint/SCROakPoints_AEA.shp")
 #Merge all the oak points and save as below shape file
+all_oaks<-st_union(sca_oaks, sri_oaks, scr_oaks)
+write_sf(all_oaks, filename="G:/data/islands/MaxEnt/Processing/Oak/all_oaks.shp", overwrite=TRUE)
 
-#merge_all_oak<-"G:\data\islands\MaxEnt\Processing\Oak\merge_all_oak.shp"
+oaksxy <- coordinates(all_oaks)
+oaksxy$Species<-"Quercus tomentella"
 
-#Add xy coordinates
+
 
 #Add field called Species
 #Calulate Field- fill with "quercus tomentella"
@@ -249,15 +246,22 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
   writeRaster(soils,paste0(island_fn, "soilclasses.asc"),format="ascii",overwrite=T)
   
 
-#DEM 
-  all_dem<-raster("G:/data/islands/all_islands/DEM/all_dem.tif") #Combined all DEMS at 270 in GIS with mosaic to new raster because much quicker and save across all projects
+#DEM THE STRUGGLE
+  ai_dem<-raster("G:/data/islands/all_islands/DEM/ai_dem270.tif")
+  scr_dem<-raster("G:/data/islands/all_islands/DEM/scr_dem270.tif")
+  sri_dem<-raster("G:/data/islands/all_islands/DEM/sri_dem270.tif")
+  smi_dem<-raster("G:/data/islands/all_islands/DEM/smi_dem270.tif")
+  sca_dem<-raster("G:/data/islands/sca/DEM/sca_dem_alb/sca_dem_alb270.tif")
+  all_dem<-merge(ai_dem, scr_dem, sri_dem, smi_dem, sca_dem, tolerance=0.5)#Accepts different origins
+  #all_dem<-raster("G:/data/islands/all_islands/DEM/all_dem270.tif") #Combined all DEMS at 270 in GIS with mosaic to new raster because much quicker and save across all projects
   crs(all_dem)<-CRS('+init=epsg:3310')
   #Figure out cropping and masking issue 
-  dem_crop <- crop(all_dem, extent(scen_extent)) #Crop to extent of outlines
+  dem_crop <- crop(all_dem, scen_extent) #Crop to extent of outlines
   dem <- mask(dem_crop, scen_extent) #Mask to the exact island outline(s)
   writeRaster(dem,paste0(island_fn, "DEM.asc"),format="ascii",overwrite=T)
 
   #Slope
+  all_terrain<-terrain(all_dem, opt=c('slope', 'aspect'), unit='degrees')
   writeRaster(Slope,paste0(island_fn, "Slope.asc"),format="ascii",overwrite=T)
 #Aspect
   writeRaster(Aspect,paste0(island_fn, "Aspect.asc"),format="ascii",overwrite=T)
