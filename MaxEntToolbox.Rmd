@@ -30,14 +30,14 @@ scenario<-"allislands_270m"
 #scr_fogdec_270m
 #sri_foginc_270m
 #sri_fogdec_270m
+#scr_fogelev_270m #ADD THIS
+#sri_fogelev_270m #ADD THIS
 #MainlandCA
 
-#Slope ones?
-#Historic ranches?
-
-#Make combine sections based on extents chosen because greatly differs-otherwise just have a lot of if else statements
 
 ```
+
+#Should create a section to make a new scenario and add needed folders?
 
 Load Packages
 
@@ -103,7 +103,8 @@ writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scena
 ```
 
 
-Oak Combined and Individual ***Come back to this
+Oak Combined and Individual 
+***MAKE SURE ALL THE OAK FOLDERS MADE
 
 ```{r}
 #Read in Oak Points
@@ -143,30 +144,13 @@ all_oaks<-sri_xy
 }else
   print ("No Scenario Selected")
 
-
+#Make Oak Point CSV based on selected oak points
 alloaks<-as.data.frame(all_oaks)
 alloaks$Species<-"Quercus tomentella"
 Oaks<-alloaks[,c(3,1,2)]
+oak_fn<-paste0("G:/data/islands/MaxEnt/MEInputOak/", scenario,"/OakPoints.csv")
+write.csv(Oaks, oak_fn)
 
-#Export to csv
-
-
-#OakWorkspace<-G:\data\islands\MaxEnt\MEInputOak\all_islands_100m
-#OutputTable<-OakPoints.csv
-
-#Save to Oak Workspace plus output table
-
-
-#Also create options for oak points individuals
-
-#comebine based on scenario
-
-#Maybe for loop?
-
-#if all islands then merge all three
-#if north islands combine two
-#If one island than that island
-#if SRI subset then by the oak seed or sap category
 
 ```
 
@@ -234,7 +218,7 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
   writeRaster(soils,paste0(island_fn, "soilclasses.asc"),format="ascii",overwrite=T)
   
 
-  #Vegetation: Made by VegetationMapGrouping.Rmd
+#Vegetation: Made by VegetationMapGrouping.Rmd
   #SCR
     scr_vegpshp<-read_sf("G:/data/islands/scr/SCRVegMapClass/SCRVegMapClass.shp")
     scr_vegr <- raster(extent(scen_extent), res=270)
@@ -278,13 +262,13 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
   writeRaster(Aspect,paste0(island_fn, "Aspect.asc"),format="ascii",overwrite=T)
 
 
-
-
 ```
 
 
 
 Fog
+#Copy the current fog layers over to where projected fog is and save them at 270.
+#Then figure out the raster names for all of them.
 
 ```{r}
 
@@ -297,29 +281,60 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
 
 #If else statements for scenarios: read in the correct data for each scenario
 if (scenario=="scr_foginc_270m"){
-  #All Islands
+  #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
+  current_fog<-raster("G:/data/tools/MaxEnt/Input/scr_100m_fog/historic/layer")
+  crs(clim_ras)<-CRS('+init=epsg:3310') #Figure out if repeat this throughout?
+  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
   
-}else if (scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
-  #Santa Rosa
+}else if (scenario=="scr_fogdec_270m"){
+  #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
+  current_fog<-raster("G:/data/tools/MaxEnt/Input/scr_100m_fog/historic/layer")
+  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
+
+}else if (scenario=="sri_foginc_270m"){
+  #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
+  current_fog<-raster("G:/data/tools/MaxEnt/Input/sri_100m_fog/historic/layers")
+  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
+
+}else if (scenario=="sri_fogdec_270m"){
+  #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
+  current_fog<-raster("G:/data/tools/MaxEnt/Input/sri_100m_fog/historic/layers")
+  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
+
+}else if (scenario=="scr_fogelev_270m"){
+  #Future Fog Elevation (+-20%): SRI and SCR
+  current_fog<-raster("G:/data/tools/MaxEnt/Input/scr_100m_fog/historic/layer")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/Elevation")
+  
+}else if (scenario=="sri_fogelev_270m"){
+  #Future Fog Elevation (+-20%): SRI and SCR
+  current_fog<-raster("G:/data/tools/MaxEnt/Input/sri_100m_fog/historic/layers")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/Elevation")
 
 }else
   print ("No Fog Data Available")
 
-
-#SRI current fog
-G:\data\tools\MaxEnt\Input\sri_100m_fog\historic\layers
-
-#SCR current fog
-G:\data\tools\MaxEnt\Input\scr_100m_fog\historic\layer
-
-#Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
-G:\data\climate\Fog\Future\PercentChange
-
-
-#Future Fog Elevation (+-20%): SRI and SCR
-G:\data\climate\Fog\Fog_270\Elevation
-
-
+if (scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"|scenario=="scr_fogelev_270m"|scenario=="sri_fogelev_270m"){
+  
+#Have to write a code that goes through the climate folders and inserts current into historic and 
+  current_fog_crop <- crop(current_fog, scen_extent) #Crop to extent of outlines
+  current_fog_mask <- mask(current_fog_crop, scen_extent) #Mask to the exact island outline(s)
+  future_fog_crop <- crop(future_fog, scen_extent) #Crop to extent of outlines
+  future_fog_mask <- mask(future_fog_crop, scen_extent) #Mask to the exact island outline(s)
+  
+  #If it works include this
+  extent(climate)<-round(extent(climate),2) #Attempt to rerun with rounded extent
+  
+  clim_dirs<-list.dirs(path="G:/data/climate/GISModel_Input", full.names=T, recursive=F)
+    for (clim in clim_dirs){
+      #print (clim) #For loop through climate projections
+      current_fog_fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/currentfog.asc")
+      writeRaster(current_fog_mask,current_fog_fn,format="ascii",overwrite=T)
+      future_fog_fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/futurefog.asc")
+      writeRaster(future_fog_mask,future_fog_fn,format="ascii",overwrite=T)
+    }#End for loop through climate projections
+}else
+  print ("No Fog Data Available")
 
 ```
 
