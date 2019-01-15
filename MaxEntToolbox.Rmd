@@ -161,6 +161,11 @@ Climate
 
 ```{r}
 
+#come back and run and climate through all the scenarios
+scen<-c("scenarios")
+for s in scen{
+  #Put everything in between here
+}
 
 if (scenario=="sca_int_270m"){
   #Santa Catalina Interpolated: Made by KrigingCatalina_AllBCM.Rmd
@@ -181,7 +186,7 @@ for (clim in clim_dirs){
     crs(clim_ras)<-CRS('+init=epsg:3310')
     clim_crop <- crop(clim_ras, extent(scen_extent)) #Crop to extent of outlines
     climate <- mask(clim_crop, scen_extent) #Mask to the exact island outline(s)
-    extent(climate)<-round(extent(climate),2) #Attempt to rerun with rounded extent
+    extent(climate)<-round(extent(climate),1) #Rerun with rounded extent so extents same decimal amount
     fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/", file_path_sans_ext(basename(var)), ".asc")
     writeRaster(climate,fn,format="ascii",overwrite=T)
   }#End for loop through climate variables
