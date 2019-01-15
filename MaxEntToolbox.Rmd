@@ -115,8 +115,8 @@ scr_oaks<-read_sf("G:/data/islands/scr/OakPoint/scr_calscape_oaks.shp")
 scr_xy<-st_coordinates(scr_oaks)
 
 #If else statements for scenarios: read in the correct data for each scenario
-if (scenario=="allislands_270m"){
-  #All Islands
+if (scenario=="allislands_270m"|scenario=="MainlandCA"){
+  #All Islands or Mainland CA
   all_oaks<-rbind(sca_xy,sri_xy,scr_xy)
 }else if (scenario=="ni_270m"){
   #Northern Islands
@@ -124,18 +124,22 @@ if (scenario=="allislands_270m"){
 }else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"){
   #Santa Cruz
 all_oaks<-scr_xy
-}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"){
+}else if (scenario=="sri_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"){
   #Santa Rosa
 all_oaks<-sri_xy
-}else if (scenario=="sca_270m"){
-  #Santa Catalina
+}else if (scenario=="sca_270m"|scenario=="sca_int_270m"){
+  #Santa Catalina and Santa Catalina Interpolated
 all_oaks<-sca_xy
-}else if (scenario=="sca_int_270m"){
-  #Santa Catalina Interpolated
-all_oaks<-sca_xy
-}else if (scenario=="MainlandCA"){
-  #Mainland CA
-all_oaks<-rbind(sca_xy,sri_xy,scr_xy)
+}else if (scenario=="sri_adultyoung_270m"){
+  #Santa Rosa Adult and Young
+sri_ay<-subset(sri_oaks, sri_oaks$Age=="Adult"|sri_oaks$Age=="Young") #Fix this so it works
+sri_xy<-st_coordinates(sri_ay)
+all_oaks<-sri_xy
+}else if (scenario=="sri_seedsap_270m"){
+  #Santa Rosa Seedling and Saplings
+sri_ay<-subset(sri_oaks, sri_oaks$Age=="Seedling"|sri_oaks$Age=="Sapling") #Fix this so it works
+sri_xy<-st_coordinates(sri_ay)
+all_oaks<-sri_xy
 }else
   print ("No Scenario Selected")
 
@@ -193,7 +197,7 @@ for (clim in clim_dirs){
     crs(clim_ras)<-CRS('+init=epsg:3310')
     clim_crop <- crop(clim_ras, extent(scen_extent)) #Crop to extent of outlines
     climate <- mask(clim_crop, scen_extent) #Mask to the exact island outline(s)
-    extent(climate)<-round(extent(climate),2)
+    extent(climate)<-round(extent(climate),2) #Attempt to rerun with rounded extent
     fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/", file_path_sans_ext(basename(var)), ".asc")
     writeRaster(climate,fn,format="ascii",overwrite=T)
   }#End for loop through climate variables
@@ -284,14 +288,15 @@ Fog
 
 ```{r}
 
-#Based on extent since only performing these for fog extent options
+scen_extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
+crs(scen_extent)<-CRS('+init=epsg:3310') 
 
 #Take fog layers-have to figure out how stored and how can for loop through
 #Crop by extent
 #Write asc raster for those fog options
 
 #If else statements for scenarios: read in the correct data for each scenario
-if (scenario=="scr_fog_270m"){
+if (scenario=="scr_foginc_270m"){
   #All Islands
   
 }else if (scenario=="sri_fog_270m"|scenario=="sri_fog_adultyoung_270m"|scenario=="sri_fog_seedsap_270m"){
@@ -301,12 +306,18 @@ if (scenario=="scr_fog_270m"){
   print ("No Fog Data Available")
 
 
-SRI:
+#SRI current fog
 G:\data\tools\MaxEnt\Input\sri_100m_fog\historic\layers
 
-SCR:
+#SCR current fog
 G:\data\tools\MaxEnt\Input\scr_100m_fog\historic\layer
 
+#Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
+G:\data\climate\Fog\Future\PercentChange
+
+
+#Future Fog Elevation (+-20%): SRI and SCR
+G:\data\climate\Fog\Fog_270\Elevation
 
 
 
