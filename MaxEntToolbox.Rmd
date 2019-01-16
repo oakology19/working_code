@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Scenario Selection
 
+Attempting merge
+
 #Otherwise can run through all the scenarios at once using the scenario for loop in each section. If choosing scenario selection make sure to turn off scenario for loops in each section by commenting them out.
 
 ```{r extent_selection}
