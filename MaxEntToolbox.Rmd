@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Scenario Selection
 
+#Otherwise can run through all the scenarios at once using the scenario for loop in each section. If choosing scenario selection make sure to turn off scenario for loops in each section by commenting them out.
+
 ```{r extent_selection}
 
 #Change scenario- one thing to change throughout
@@ -30,9 +32,10 @@ scenario<-"allislands_270m"
 #scr_fogdec_270m
 #sri_foginc_270m
 #sri_fogdec_270m
-#scr_fogelev_270m #ADD THIS
-#sri_fogelev_270m #ADD THIS
+#scr_fogelev_270m
+#sri_fogelev_270m
 #MainlandCA
+
 
 
 ```
@@ -62,6 +65,13 @@ Extent
 
 #Create scenario extent that will be used throughout the rest of the processes, based off the minimum BCM data available as well as the Channel Island CUSP outlines
 
+scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m","MainlandCA")
+
+#If want to run all scenarios at once
+for (s in scen){
+print (s)
+scenario<-s
+
 #If else statements for scenarios: read in the correct data for each scenario
 if (scenario=="allislands_270m"){
   #All Islands
@@ -71,11 +81,11 @@ if (scenario=="allislands_270m"){
   #Northern Islands
   scenario_extent<-read_sf("G:/data/islands/all_islands/ni_outline/ni_outline.shp")
   min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
-}else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"){
+}else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"|scenario=="scr_fogelev_270m"){
   #Santa Cruz
   scenario_extent<-read_sf("G:/data/islands/scr/scr_extent/scr_extent.shp")
   min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
-}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"){
+}else if (scenario=="sri_270m"|scenario=="sri_adultyoung_270m"|scenario=="sri_seedsap_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"|scenario=="sri_fogelev_270m"){
   #Santa Rosa
   scenario_extent<-read_sf("G:/data/islands/sri/sri_extent/sri_extent.shp")
   min_data<-raster("G:/data/climate/GISModel_Input/historic/cwd1981_2010_ave_HST_1539127145.tif")
@@ -96,7 +106,10 @@ if (scenario=="allislands_270m"){
 
 cropped <- crop(min_data, extent(scenario_extent)) #Crop to extent of outlines
 scen_extent <- mask(cropped, scenario_extent) #Mask to the exact island outline(s)
+extent(scen_extent)<-round(extent(scen_extent),1) #Rerun with rounded extent so extents same decimal amount
 writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"), overwrite=TRUE)#write extent raster
+
+}#To run all scenarios at once. Comment out if running scenario by scenario
 
 #Extent will be used throughout Script. Will call in the extent each time just to be careful.
 
@@ -104,43 +117,53 @@ writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scena
 
 
 Oak Combined and Individual 
-***MAKE SURE ALL THE OAK FOLDERS MADE
 
-```{r}
+***RUN THIS CODE ONCE SRI OAKS REPLACED
+
+```{r oakpoints}
+
 #Read in Oak Points
 sca_oaks<-read_sf("G:/data/islands/sca/Quertome/SCAOakPoints_AEA.shp")
 sca_xy<-st_coordinates(sca_oaks)
-sri_oaks<-read_sf("G:/data/islands/sri/OakPoint/SRI_OakPoints_Updated.shp")
+sri_oaks<-read_sf("G:/data/islands/sri/OakPoint/SRI_OakPoints_Updated.shp")#Fix so correct points
 sri_xy<-st_coordinates(sri_oaks)
-scr_oaks<-read_sf("G:/data/islands/scr/OakPoint/scr_calscape_oaks.shp")
+scr_oaks<-read_sf("G:/data/islands/scr/OakPoint/SCR_OakPoints_Updated.shp")
 scr_xy<-st_coordinates(scr_oaks)
+
+
+scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m","MainlandCA")
+
+#If want to run all scenarios at once
+for (s in scen){
+print (s)
+scenario<-s
 
 #If else statements for scenarios: read in the correct data for each scenario
 if (scenario=="allislands_270m"|scenario=="MainlandCA"){
   #All Islands or Mainland CA
-  all_oaks<-rbind(sca_xy,sri_xy,scr_xy)
+  all_oaks<-rbind(sca_xy[,1:2],sri_xy[,1:2],scr_xy[,1:2])
 }else if (scenario=="ni_270m"){
   #Northern Islands
- all_oaks<-rbind(sri_xy,scr_xy)
+ all_oaks<-rbind(sri_xy[,1:2],scr_xy[,1:2])
 }else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"){
   #Santa Cruz
-all_oaks<-scr_xy
+all_oaks<-scr_xy[,1:2]
 }else if (scenario=="sri_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"){
   #Santa Rosa
-all_oaks<-sri_xy
+all_oaks<-sri_xy[,1:2]
 }else if (scenario=="sca_270m"|scenario=="sca_int_270m"){
   #Santa Catalina and Santa Catalina Interpolated
-all_oaks<-sca_xy
+all_oaks<-sca_xy[,1:2]
 }else if (scenario=="sri_adultyoung_270m"){
   #Santa Rosa Adult and Young
-sri_ay<-subset(sri_oaks, sri_oaks$Age=="Adult"|sri_oaks$Age=="Young") #Fix this so it works
+sri_ay<-subset(sri_oaks, sri_oaks$Age=="adult"|sri_oaks$Age=="young") #Fix this so it works
 sri_xy<-st_coordinates(sri_ay)
-all_oaks<-sri_xy
+all_oaks<-sri_xy[,1:2]
 }else if (scenario=="sri_seedsap_270m"){
   #Santa Rosa Seedling and Saplings
-sri_ay<-subset(sri_oaks, sri_oaks$Age=="Seedling"|sri_oaks$Age=="Sapling") #Fix this so it works
+sri_ay<-subset(sri_oaks, sri_oaks$Age=="seedling"|sri_oaks$Age=="sapling") #Fix this so it works
 sri_xy<-st_coordinates(sri_ay)
-all_oaks<-sri_xy
+all_oaks<-sri_xy[,1:2]
 }else
   print ("No Scenario Selected")
 
@@ -149,7 +172,9 @@ alloaks<-as.data.frame(all_oaks)
 alloaks$Species<-"Quercus tomentella"
 Oaks<-alloaks[,c(3,1,2)]
 oak_fn<-paste0("G:/data/islands/MaxEnt/MEInputOak/", scenario,"/OakPoints.csv")
-write.csv(Oaks, oak_fn)
+write.csv(Oaks, oak_fn, row.names=FALSE)
+
+}#To run all scenarios at once. Comment out if running scenario by scenario
 
 
 ```
@@ -157,15 +182,16 @@ write.csv(Oaks, oak_fn)
 
 
 Climate  
-#Ran them all except for Mainland CA-issue with historic about extents
+#Running in shell
 
 ```{r}
 
-#come back and run and climate through all the scenarios
-scen<-c("scenarios")
-for s in scen{
-  #Put everything in between here
-}
+scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m","MainlandCA")
+
+#If want to run all scenarios at once
+for (s in scen){
+print (s)
+scenario<-s
 
 if (scenario=="sca_int_270m"){
   #Santa Catalina Interpolated: Made by KrigingCatalina_AllBCM.Rmd
@@ -178,10 +204,10 @@ scen_extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
 crs(scen_extent)<-CRS('+init=epsg:3310') 
  
 for (clim in clim_dirs){
-  #print (clim) #For loop through climate projections
+  print (clim) #For loop through climate projections
   clim_vars<-list.files(clim, pattern='tif$', full.names=TRUE )
   for (var in clim_vars){
-    #print (var)#For loop through climate variables
+    print (var)#For loop through climate variables
     clim_ras<-raster(var)
     crs(clim_ras)<-CRS('+init=epsg:3310')
     clim_crop <- crop(clim_ras, extent(scen_extent)) #Crop to extent of outlines
@@ -192,6 +218,7 @@ for (clim in clim_dirs){
   }#End for loop through climate variables
 }#End for loop through climate projections
 
+}#To run all scenarios at once. Comment out if running scenario by scenario
 
 ```
 
@@ -201,6 +228,13 @@ Island
 #Need to finish up DEM issues, calculate slope and aspect, and then run all of these for each scenario 
 
 ```{r}
+
+scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m","MainlandCA")
+
+#If want to run all scenarios at once
+for (s in scen){
+print (s)
+scenario<-s
 
 #For MainlandCA set this all to NULL
 
@@ -266,69 +300,75 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
 #Aspect
   writeRaster(Aspect,paste0(island_fn, "Aspect.asc"),format="ascii",overwrite=T)
 
-
+}#To run all scenarios at once. Comment out if running scenario by scenario
+  
 ```
 
 
 
 Fog
-#Copy the current fog layers over to where projected fog is and save them at 270.
-#Then figure out the raster names for all of them.
 
 ```{r}
+
+
+scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m","MainlandCA")
+
+#If want to run all scenarios at once
+for (s in scen){
+print (s)
+scenario<-s
 
 scen_extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
 crs(scen_extent)<-CRS('+init=epsg:3310') 
 
-#Take fog layers-have to figure out how stored and how can for loop through
-#Crop by extent
-#Write asc raster for those fog options
-
 #If else statements for scenarios: read in the correct data for each scenario
 if (scenario=="scr_foginc_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
-  current_fog<-raster("G:/data/tools/MaxEnt/Input/scr_100m_fog/historic/layer")
-  crs(clim_ras)<-CRS('+init=epsg:3310') #Figure out if repeat this throughout?
-  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
+  current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/scr_allfog_270.tif")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_increase20_270.tif")
   
 }else if (scenario=="scr_fogdec_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
-  current_fog<-raster("G:/data/tools/MaxEnt/Input/scr_100m_fog/historic/layer")
-  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
+  current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/scr_allfog_270.tif")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_decrease20_270.tif")
 
 }else if (scenario=="sri_foginc_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
-  current_fog<-raster("G:/data/tools/MaxEnt/Input/sri_100m_fog/historic/layers")
-  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
+  current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/sri_allfog_270.tif")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_increase20_270.tif")
 
 }else if (scenario=="sri_fogdec_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
-  current_fog<-raster("G:/data/tools/MaxEnt/Input/sri_100m_fog/historic/layers")
-  future_fog<-raster("G:/data/climate/Fog/Future/PercentChange")
+  current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/sri_allfog_270.tif")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_decrease20_270.tif")
 
 }else if (scenario=="scr_fogelev_270m"){
   #Future Fog Elevation (+-20%): SRI and SCR
-  current_fog<-raster("G:/data/tools/MaxEnt/Input/scr_100m_fog/historic/layer")
-  future_fog<-raster("G:/data/climate/Fog/Fog_270/Elevation")
+  current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/scr_allfog_270.tif")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/Elevation/scr_all_elevation20.tif")
   
 }else if (scenario=="sri_fogelev_270m"){
   #Future Fog Elevation (+-20%): SRI and SCR
-  current_fog<-raster("G:/data/tools/MaxEnt/Input/sri_100m_fog/historic/layers")
-  future_fog<-raster("G:/data/climate/Fog/Fog_270/Elevation")
+  current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/sri_allfog_270.tif")
+  future_fog<-raster("G:/data/climate/Fog/Fog_270/Elevation/sri_all_elevation20.tif")
 
 }else
   print ("No Fog Data Available")
 
+
+
+
 if (scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"|scenario=="scr_fogelev_270m"|scenario=="sri_fogelev_270m"){
   
 #Have to write a code that goes through the climate folders and inserts current into historic and 
+  
+  extent(current_fog)<-round(extent(current_fog),1)
+  extent(future_fog)<-round(extent(future_fog),1)
   current_fog_crop <- crop(current_fog, scen_extent) #Crop to extent of outlines
   current_fog_mask <- mask(current_fog_crop, scen_extent) #Mask to the exact island outline(s)
   future_fog_crop <- crop(future_fog, scen_extent) #Crop to extent of outlines
   future_fog_mask <- mask(future_fog_crop, scen_extent) #Mask to the exact island outline(s)
   
-  #If it works include this
-  extent(climate)<-round(extent(climate),2) #Attempt to rerun with rounded extent
   
   clim_dirs<-list.dirs(path="G:/data/climate/GISModel_Input", full.names=T, recursive=F)
     for (clim in clim_dirs){
@@ -340,6 +380,8 @@ if (scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"|scenario=="sri_fogin
     }#End for loop through climate projections
 }else
   print ("No Fog Data Available")
+
+}#To run all scenarios at once. Comment out if running scenario by scenario
 
 ```
 
