@@ -12,8 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Scenario Selection
 
-Attempting merge
-
 #Otherwise can run through all the scenarios at once using the scenario for loop in each section. If choosing scenario selection make sure to turn off scenario for loops in each section by commenting them out.
 
 ```{r extent_selection}
@@ -120,18 +118,12 @@ writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scena
 
 Oak Combined and Individual 
 
-***RUN THIS CODE for all scenarios ONCE SRI OAKS shp REPLACED
-
 ```{r oakpoints}
 
 #Read in Oak Points
 sca_oaks<-read_sf("G:/data/islands/sca/Quertome/SCAOakPoints_AEA.shp")
-sca_xy<-st_coordinates(sca_oaks)
-sri_oaks<-read_sf("G:/data/islands/sri/OakPoint/SRI_OakPoints_Updated.shp")#Fix so correct points
-sri_xy<-st_coordinates(sri_oaks)
+sri_oaks<-read_sf("G:/data/islands/sri/OakPoint/SRI_OakPoints_Updated.shp")
 scr_oaks<-read_sf("G:/data/islands/scr/OakPoint/SCR_OakPoints_Updated.shp")
-scr_xy<-st_coordinates(scr_oaks)
-
 
 scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m","MainlandCA")
 
@@ -143,29 +135,37 @@ scenario<-s
 #If else statements for scenarios: read in the correct data for each scenario
 if (scenario=="allislands_270m"|scenario=="MainlandCA"){
   #All Islands or Mainland CA
+  sca_xy<-st_coordinates(sca_oaks)
+  sri_xy<-st_coordinates(sri_oaks)
+  scr_xy<-st_coordinates(scr_oaks)
   all_oaks<-rbind(sca_xy[,1:2],sri_xy[,1:2],scr_xy[,1:2])
 }else if (scenario=="ni_270m"){
   #Northern Islands
- all_oaks<-rbind(sri_xy[,1:2],scr_xy[,1:2])
-}else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"){
+  sri_xy<-st_coordinates(sri_oaks)
+  scr_xy<-st_coordinates(scr_oaks)
+  all_oaks<-rbind(sri_xy[,1:2],scr_xy[,1:2])
+}else if (scenario=="scr_270m"|scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"|scenario=="scr_fogelev_270m"){
   #Santa Cruz
-all_oaks<-scr_xy[,1:2]
-}else if (scenario=="sri_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"){
+  scr_xy<-st_coordinates(scr_oaks)
+  all_oaks<-scr_xy[,1:2]
+}else if (scenario=="sri_270m"|scenario=="sri_foginc_270m"|scenario=="sri_fogdec_270m"|scenario=="sri_fogelev_270m"){
   #Santa Rosa
-all_oaks<-sri_xy[,1:2]
+  sri_xy<-st_coordinates(sri_oaks)
+  all_oaks<-sri_xy[,1:2]
 }else if (scenario=="sca_270m"|scenario=="sca_int_270m"){
   #Santa Catalina and Santa Catalina Interpolated
-all_oaks<-sca_xy[,1:2]
+  sca_xy<-st_coordinates(sca_oaks)
+  all_oaks<-sca_xy[,1:2]
 }else if (scenario=="sri_adultyoung_270m"){
   #Santa Rosa Adult and Young
-sri_ay<-subset(sri_oaks, sri_oaks$Age=="adult"|sri_oaks$Age=="young") #Fix this so it works
-sri_xy<-st_coordinates(sri_ay)
-all_oaks<-sri_xy[,1:2]
+  sri_ay<-subset(sri_oaks, sri_oaks$Age=="adult"|sri_oaks$Age=="young") #Fix this so it works
+  sri_xy<-st_coordinates(sri_ay)
+  all_oaks<-sri_xy[,1:2]
 }else if (scenario=="sri_seedsap_270m"){
   #Santa Rosa Seedling and Saplings
-sri_ay<-subset(sri_oaks, sri_oaks$Age=="seedling"|sri_oaks$Age=="sapling") #Fix this so it works
-sri_xy<-st_coordinates(sri_ay)
-all_oaks<-sri_xy[,1:2]
+  sri_ay<-subset(sri_oaks, sri_oaks$Age=="seedling"|sri_oaks$Age=="sapling") #Fix this so it works
+  sri_xy<-st_coordinates(sri_ay)
+  all_oaks<-sri_xy[,1:2]
 }else
   print ("No Scenario Selected")
 
@@ -316,7 +316,6 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
 
 
 Fog
-***Run this for all scenarios
 
 ```{r}
 
@@ -382,12 +381,16 @@ if (scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"|scenario=="sri_fogin
   extent(future_fog_mask)<-round(extent(future_fog_mask),1)
   
   
+  
+  
   clim_dirs<-list.dirs(path="G:/data/climate/GISModel_Input", full.names=T, recursive=F)
     for (clim in clim_dirs){
       #print (clim) #For loop through climate projections
-      current_fog_fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/currentfog.asc")
-      writeRaster(current_fog_mask,current_fog_fn,format="ascii",overwrite=T)
-      future_fog_fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/futurefog.asc")
+      if(basename(clim)=="historic"|basename(clim)=="historic_1921_1950"|basename(clim)=="historic_1951_1980"){
+        current_fog_fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/fog.asc")
+        writeRaster(current_fog_mask,current_fog_fn,format="ascii",overwrite=T)
+      }else
+      future_fog_fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/fog.asc")
       writeRaster(future_fog_mask,future_fog_fn,format="ascii",overwrite=T)
     }#End for loop through climate projections
 }else
