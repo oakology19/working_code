@@ -118,7 +118,7 @@ writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scena
 
 Oak Combined and Individual 
 
-***RUN THIS CODE ONCE SRI OAKS REPLACED
+***RUN THIS CODE for all scenarios ONCE SRI OAKS shp REPLACED
 
 ```{r oakpoints}
 
@@ -182,7 +182,7 @@ write.csv(Oaks, oak_fn, row.names=FALSE)
 
 
 Climate  
-#Running in shell
+#Need to run Mainland CA
 
 ```{r}
 
@@ -225,7 +225,7 @@ for (clim in clim_dirs){
 
 
 Island
-#Need to finish up DEM issues, calculate slope and aspect, and then run all of these for each scenario 
+***Run these for all scenarios
 
 ```{r}
 
@@ -236,9 +236,9 @@ for (s in scen){
 print (s)
 scenario<-s
 
-#For MainlandCA set this all to NULL
+if (scenario!="MainlandCA"){
 
-#Set final directory
+  #Set final directory
 island_fn<-paste0("G:/data/islands/MaxEnt/MEInput/", scenario, "/")
 #Call in appropriate extent
 scen_extent<-raster(paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"))
@@ -254,6 +254,7 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
   crs(soilras)<-CRS('+init=epsg:3310')
   soil_crop <- crop(soilras, extent(scen_extent)) #Crop to extent of outlines
   soils <- mask(soil_crop, scen_extent) #Mask to the exact island outline(s)
+  extent(soils)<-round(extent(soils),1)
   writeRaster(soils,paste0(island_fn, "soilclasses.asc"),format="ascii",overwrite=T)
   
 
@@ -277,6 +278,7 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
     all_veg<-merge(scr_vegras, ni_vegras, sca_vegras)
     veg_crop <- crop(all_veg, extent(scen_extent)) #Crop to extent of outlines
     veg <- mask(veg_crop, scen_extent) #Mask to the exact island outline(s)
+    extent(veg)<-round(extent(veg),1)
     writeRaster(veg,paste0(island_fn, "veg.asc"),format="ascii",overwrite=T)
     
     
@@ -288,18 +290,23 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
   sca_dem<-raster("G:/data/islands/sca/DEM/sca_dem_alb/sca_dem_alb270.tif")
   all_dem<-merge(ai_dem, scr_dem, sri_dem, smi_dem, sca_dem, tolerance=0.5)#Accepts different origins
   #all_dem<-raster("G:/data/islands/all_islands/DEM/all_dem270.tif") #Combined all DEMS at 270 in GIS with mosaic to new raster because much quicker and save across all projects
-  crs(all_dem)<-CRS('+init=epsg:3310')
+  all_dem_new <- resample(all_dem, scen_extent, "ngb")
   #Figure out cropping and masking issue 
-  dem_crop <- crop(all_dem, scen_extent) #Crop to extent of outlines
+  dem_crop <- crop(all_dem_new, scen_extent) #Crop to extent of outlines
   dem <- mask(dem_crop, scen_extent) #Mask to the exact island outline(s)
+  extent(dem)<-round(extent(dem),1)
   writeRaster(dem,paste0(island_fn, "DEM.asc"),format="ascii",overwrite=T)
 
-  #Slope
-  all_terrain<-terrain(all_dem, opt=c('slope', 'aspect'), unit='degrees')
-  writeRaster(Slope,paste0(island_fn, "Slope.asc"),format="ascii",overwrite=T)
-#Aspect
-  writeRaster(Aspect,paste0(island_fn, "Aspect.asc"),format="ascii",overwrite=T)
+  #Slope and Aspect
+  all_terrain<-terrain(dem, opt=c('slope', 'aspect'), unit='degrees')
+  slope<-all_terrain$slope
+  aspect<-all_terrain$aspect
+  writeRaster(slope,paste0(island_fn, "slope.asc"),format="ascii",overwrite=T)
+  writeRaster(aspect,paste0(island_fn, "aspect.asc"),format="ascii",overwrite=T)
 
+}else
+  print ("Mainland CA needs data")
+  
 }#To run all scenarios at once. Comment out if running scenario by scenario
   
 ```
@@ -307,6 +314,7 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
 
 
 Fog
+***Run this for all scenarios
 
 ```{r}
 
@@ -362,12 +370,14 @@ if (scenario=="scr_foginc_270m"|scenario=="scr_fogdec_270m"|scenario=="sri_fogin
   
 #Have to write a code that goes through the climate folders and inserts current into historic and 
   
-  extent(current_fog)<-round(extent(current_fog),1)
-  extent(future_fog)<-round(extent(future_fog),1)
-  current_fog_crop <- crop(current_fog, scen_extent) #Crop to extent of outlines
+  current_fog_new <- resample(current_fog, scen_extent, "ngb")
+  future_fog_new <- resample(future_fog, scen_extent, "ngb")
+  current_fog_crop <- crop(current_fog_new, scen_extent) #Crop to extent of outlines
   current_fog_mask <- mask(current_fog_crop, scen_extent) #Mask to the exact island outline(s)
-  future_fog_crop <- crop(future_fog, scen_extent) #Crop to extent of outlines
+  future_fog_crop <- crop(future_fog_new, scen_extent) #Crop to extent of outlines
   future_fog_mask <- mask(future_fog_crop, scen_extent) #Mask to the exact island outline(s)
+  extent(current_fog_mask)<-round(extent(current_fog_mask),1)
+  extent(future_fog_mask)<-round(extent(future_fog_mask),1)
   
   
   clim_dirs<-list.dirs(path="G:/data/climate/GISModel_Input", full.names=T, recursive=F)
