@@ -45,6 +45,7 @@ scenario<-"allislands_270m"
 #sri_fogconstant_270m
 #MainlandCA
 
+
 scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m", "scr_fogconstant_270m", "sri_fogconstant_270m", "MainlandCA")
 
 ```
