@@ -2,7 +2,9 @@
 title: "MaxEnt Toolbox"
 author: "Oakology"
 date: "January 11, 2019"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -14,7 +16,7 @@ Scenario Selection
 
 #Can either choose specific scenario or run them all at once
 1. If choosing scenario selection make sure to turn off scenario for loops in each section by commenting them out.
-2. Running them all at once will work without modifications but will take awhile
+2. Running them all at once will work without modifications but will take awhile.
 
 
 ***Make new extents based on fog and copy over all necessary data to those folders
@@ -39,8 +41,8 @@ scenario<-"allislands_270m"
 #sri_fogdec_270m
 #scr_fogelev_270m
 #sri_fogelev_270m
-#scr_fogconstant_270m #ADD
-#sri_fogconstant_270m #ADD
+#scr_fogconstant_270m
+#sri_fogconstant_270m
 #MainlandCA
 
 scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m", "scr_fogconstant_270m", "sri_fogconstant_270m", "MainlandCA")
@@ -67,6 +69,7 @@ library(tools)
 
 
 Extent
+#Check in on this code on other computer
 
 ```{r extent}
 
@@ -109,10 +112,10 @@ if (scenario=="allislands_270m"){
 }else
   print ("No Scenario Selected")
 
-cropped <- crop(min_data, extent(scenario_extent)) #Crop to extent of outlines
-scen_extent <- mask(cropped, scenario_extent) #Mask to the exact island outline(s)
-extent(scen_extent)<-round(extent(scen_extent),1) #Rerun with rounded extent so extents same decimal amount
-writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"), overwrite=TRUE)#write extent raster
+# cropped <- crop(min_data, extent(scenario_extent)) #Crop to extent of outlines
+# scen_extent <- mask(cropped, scenario_extent) #Mask to the exact island outline(s)
+# extent(scen_extent)<-round(extent(scen_extent),1) #Rerun with rounded extent so extents same decimal amount
+# writeRaster(scen_extent, filename=paste0("G:/data/islands/MaxEnt/Extent/", scenario, ".tif"), overwrite=TRUE)#write extent raster
 
 }#To run all scenarios at once. Comment out if running scenario by scenario
 
@@ -210,14 +213,21 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
 for (clim in clim_dirs){
   print (clim) #For loop through climate projections
   clim_vars<-list.files(clim, pattern='tif$', full.names=TRUE )
-  for (var in clim_vars){
-    print (var)#For loop through climate variables
-    clim_ras<-raster(var)
+  for (climvar in clim_vars){
+    print (climvar)#For loop through climate variables
+    clim_ras<-raster(climvar)
     crs(clim_ras)<-CRS('+init=epsg:3310')
-    clim_crop <- crop(clim_ras, extent(scen_extent)) #Crop to extent of outlines
+    
+    if(scenario=="MainlandCA"){
+      climate_new<- resample(clim_ras, scen_extent, "ngb")
+    }else
+      climate_new<-clim_ras
+    
+    clim_crop <- crop(climate_new, extent(scen_extent)) #Crop to extent of outlines
     climate <- mask(clim_crop, scen_extent) #Mask to the exact island outline(s)
     extent(climate)<-round(extent(climate),1) #Rerun with rounded extent so extents same decimal amount
-    fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/", file_path_sans_ext(basename(var)), ".asc")
+    clim_name<-file_path_sans_ext(basename(climvar))
+    fn <- paste0("G:/data/climate/MEInput/", scenario, "/", basename(clim), "/", clim_name, ".asc")
     writeRaster(climate,fn,format="ascii",overwrite=T)
   }#End for loop through climate variables
 }#End for loop through climate projections
@@ -315,8 +325,6 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
 
 
 Fog
-#Need to account for different time steps
-#Need to change future fog time period for each raster read in
 
 ```{r}
 
@@ -332,44 +340,44 @@ crs(scen_extent)<-CRS('+init=epsg:3310')
 if (scenario=="scr_foginc_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
   current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/scr_allfog_270.tif")
-  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_increase20_270.tif")
-  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_increase20_270.tif")
-  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_increase20_270.tif")
+  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SCR/scr_All_increase045.tif")
+  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SCR/scr_All_increase135.tif")
+  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SCR/scr_All_increase225.tif")
   
 }else if (scenario=="scr_fogdec_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
   current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/scr_allfog_270.tif")
-  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_decrease20_270.tif")
-  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_decrease20_270.tif")
-  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/scr_all_decrease20_270.tif")
+  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SCR/scr_All_decrease045.tif")
+  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SCR/scr_All_decrease135.tif")
+  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SCR/scr_All_decrease225.tif")
 
 }else if (scenario=="sri_foginc_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
   current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/sri_allfog_270.tif")
-  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_increase20_270.tif")
-  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_increase20_270.tif")
-  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_increase20_270.tif")
+  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SRI/sri_All_increase045.tif")
+  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SRI/sri_All_increase135.tif")
+  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SRI/sri_All_increase225.tif")
 
 }else if (scenario=="sri_fogdec_270m"){
   #Future fog changed by a percent (20%) Inc/Dec for SRI and SCR
   current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/sri_allfog_270.tif")
-  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_decrease20_270.tif")
-  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_decrease20_270.tif")
-  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/sri_all_decrease20_270.tif")
+  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SRI/sri_All_decrease045.tif")
+  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SRI/sri_All_decrease135.tif")
+  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/PercentChange/SRI/sri_All_decrease225.tif")
 
 }else if (scenario=="scr_fogelev_270m"){
   #Future Fog Elevation (+-20%): SRI and SCR
   current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/scr_allfog_270.tif")
-  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/Elevation/scr_all_elevation20.tif")
-  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/Elevation/scr_all_elevation20.tif")
-  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/Elevation/scr_all_elevation20.tif")
+  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/Elevation/SCR/scr_all_elevation045.tif")
+  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/Elevation/SCR/scr_all_elevation135.tif")
+  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/Elevation/SCR/scr_all_elevation225.tif")
   
 }else if (scenario=="sri_fogelev_270m"){
   #Future Fog Elevation (+-20%): SRI and SCR
   current_fog<-raster("G:/data/climate/Fog/Fog_270/Historic/sri_allfog_270.tif")
-  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/Elevation/sri_all_elevation20.tif")
-  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/Elevation/sri_all_elevation20.tif")
-  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/Elevation/sri_all_elevation20.tif")
+  future_fog_10_40<-raster("G:/data/climate/Fog/Fog_270/Elevation/SRI/sri_all_elevation045.tif")
+  future_fog_40_70<-raster("G:/data/climate/Fog/Fog_270/Elevation/SRI/sri_all_elevation135.tif")
+  future_fog_70_100<-raster("G:/data/climate/Fog/Fog_270/Elevation/SRI/sri_all_elevation225.tif")
 
 }else if (scenario=="scr_fogconstant_270m"){
   #Current fog level constant across all future projections
@@ -452,8 +460,7 @@ Organization
 
 ```{r}
 
-#Copy over code from BCM_organization but add in for all options made above but can select which of the variables actually should be carried over based on our decisions
-#And based on scenario-some have fog and others dont and difference in oak points
+#Move files over to correct layer for MaxEnt and name them correctly
 
 scen<-c("allislands_270m","ni_270m","sca_270m","sca_int_270m","scr_270m","sri_270m","sri_adultyoung_270m","sri_seedsap_270m","scr_foginc_270m","scr_fogdec_270m","sri_foginc_270m","sri_fogdec_270m","scr_fogelev_270m","sri_fogelev_270m", "scr_fogconstant_270m", "sri_fogconstant_270m")
 #Need to run mainland and re-run new scenarios when created
@@ -483,11 +490,11 @@ scenario<-s
       var<-substr(i, 1, 3)
       file.copy(from=paste0(clim_from, i), to=paste0(clim_to,var, ".asc"), overwrite=TRUE)
       }#End climate move
+      
       #Turn on if want to move over island variables
-      files <- list.files(path = island_from, pattern = ".asc$")
-      for (i in files){
-      #file.copy(from=paste0(island_from, i), to=paste0(island_to,var, ".asc"), overwrite=TRUE)
-      }
+      #files <- list.files(path = island_from, pattern = ".asc$")
+      #for (i in files){
+      #file.copy(from=paste0(island_from, i), to=paste0(island_to,var, ".asc"), overwrite=TRUE)}
       
     }#End per climate
   #Oak points, because not dependent on climate projections
