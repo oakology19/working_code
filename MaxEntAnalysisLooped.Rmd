@@ -9,59 +9,75 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This R Markdown Script can be used to take the MaxEnt outputs and perform spatial and statistical analyses on the files for visualization in ArcGIS. The only variable you have to change is the extent to the current scope of analysis being run, as well as add in any important AUC or binary threshold information for each scenario. The script then for loops through all the current and projected climate file outputs for the scenario and performs the specified analyses for each and writes the appropriate raster tiff files to the correct folders. The entire process is automated so that a new scenario can be inputted and the all the same calculations and rasters can be created rapidly. Then the files can just be visualized in ArcGIS using predesigned templates for each analysis type that we created.
+This R Markdown Script can be used to take the MaxEnt outputs and perform spatial and statistical analyses on the files for visualization in ArcGIS. The only variable you have to change is the scenario to the current scope of analysis being run, as well as add in any important AUC or binary threshold information for each scenario. The script then for loops through all the current and projected climate file outputs for the scenario and performs the specified analyses for each and writes the appropriate raster tiff files to the correct folders. The entire process is automated so that a new scenario can be inputted and the all the same calculations and rasters can be created rapidly. Then the files can just be visualized in ArcGIS using predesigned templates for each analysis type that we created.
 
 ```{r}
 ######################################################
 #Pick and choose analysis adventure
 
-###CHANGE THIS VARIABLE AND THE REST IS MAGIC (all based on extent option)
-extent<-"allCA"
+###CHANGE THIS VARIABLE AND THE REST IS MAGIC (all based on scenario option)
+scenario<-"allCA"
 
-#Extent options:
-#allislands_100m
-#sca_int_100m
-#sri_100m
-#sri_100m_adultyoung
-#sri_100m_seedling
-#sri_100m_seedlingsapling
-#allCA
+#Options:
+#allislands_270m
+#ni_270m
+#sca_270m
+#sca_int_270m
+#scr_270m
+#sri_270m
+#sri_adultyoung_270m
+#sri_seedsap_270m
+#scr_foginc_270m
+#scr_fogdec_270m
+#sri_foginc_270m
+#sri_fogdec_270m
+#scr_fogelev_270m
+#sri_fogelev_270m
+#scr_fogconstant_270m
+#sri_fogconstant_270m
+#MainlandCA
 
 #Note that rasters will overwrite themselves so run with caution or code them out
 
 ###################################
-#THESE VARIABLES WILL NOW BE SELECTED BASED ON EXTENT OPTION
+#THESE VARIABLES WILL NOW BE SELECTED BASED ON SCENARIO OPTION
 
 #Threshold is the Binary threshold values:#Reclassify matrix based on 5 replicates average of the maximum training sensitivity + specifitiy (Liu 2013)
 #Order of AUC is MPI 4.5, CCSM4 8.5, MIROC 4.5, MIROC 8.5
 #Often Test AUC for Each Island Sensitive to Replicates and Selected Test Data
 
+#Change this so that it it pulling in the csv and reading the column values
 
-if (extent=="allislands_100m"){
+# Need to change htat instead by scenario its by the projection type as well- go through all scenarios and projections and read in the csv in that folder and pull out the threshold value and average AUC value
+#Make sure all the scenario folders are made
+
+hist<-read.csv(paste0("G:/data/tools/MaxEnt/Output/", scenario, "/historic/final/csvname.csv"))
+
+if (scenario=="allislands_100m"){
   threshold<- 0.274
   histAUC<-0.824
   AvgTestAUC<-as.data.frame(c(0.874, 0.896, 0.828, 0.875, 0.883, 0.864, 0.881, 0.779, 0.847, 0.867, 0.904, 0.866))
-} else if (extent=="sca_int_100m"){
+} else if (scenario=="sca_int_100m"){
   threshold<- 0.423
   histAUC<-0.835
   AvgTestAUC<-as.data.frame(c(0.715, 0.674, 0.767, 0.733, 0.756, 0.704, 0.605, 0.690, 0.719, 0.708, 0.681, 0.804))
-} else if (extent=="sri_100m"){
+} else if (scenario=="sri_100m"){
   threshold<- 0.240
   histAUC<-0.980
   AvgTestAUC<-as.data.frame(c(0.981, 0.985, 0.935, 0.844, 0.809, 0.922, 0.848, 0.896, 0.912, 0.979, 0.985, 0.945))
-} else if (extent=="sri_100m_adultyoung"){
+} else if (scenario=="sri_100m_adultyoung"){
   threshold<- 0.346
   histAUC<-0.820
   AvgTestAUC<-as.data.frame(c(0.987, 0.994, 0.810, 0.815, 0.997, 0.990, 0.983, 0.901, 0.985, 0.808, 0.982, 0.906))
-} else if (extent=="sri_100m_seedling"){
+} else if (scenario=="sri_100m_seedling"){
   threshold<- 0.208
   histAUC<-0.993
   AvgTestAUC<-as.data.frame(c(0.987, 0.981, 0.802, 0.985, 0.988, 0.995, 0.996, 0.984, 0.988, 0.983, 0.996, 0.997))
-} else if(extent=="sri_100m_seedlingsapling"){
+} else if(scenario=="sri_100m_seedlingsapling"){
   threshold<- 0.212
   histAUC<-0.996
   AvgTestAUC<-as.data.frame(c(0.986, 0.900, 0.996, 0.968, 0.988, 0.810, 0.996, 0.801, 0.980, 0.803, 0.984, 0.997))
-} else if(extent=="allCA"){
+} else if(scenario=="allCA"){
   threshold<- 0.061
   histAUC<-0.992
   AvgTestAUC<-as.data.frame(c(0.997, 0.994, 0.995, 0.993, 0.995, 0.994, 0.991, 0.995, 0.992, 0.997, 0.991, 0.993))
@@ -84,12 +100,12 @@ library(gdata)#for combine function
 rclmat<-c(-Inf,threshold,0, threshold,1,1)#Actual reclassify matrix based on threshold
 
 #Read in historic information
-hist<-raster(paste0("G:/data/tools/MaxEnt/Output/", extent, "/historic/final/quercus_tomentella.asc"))
+hist<-raster(paste0("G:/data/tools/MaxEnt/Output/", scenario, "/historic/final/quercus_tomentella.asc"))
 proj4string(hist) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
-writeRaster(hist, filename = paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/historic.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(hist, filename = paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/historic.tif"), format="GTiff", overwrite=TRUE)
 histhigh<-cellStats(hist, max)
 histrc <- reclassify(hist, rclmat)
-writeRaster(histrc, filename = paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/historic.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(histrc, filename = paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/historic.tif"), format="GTiff", overwrite=TRUE)
 histfq<-as.data.frame(freq(histrc, 1))
 histsuit<-histfq[2,2]
 
@@ -103,13 +119,13 @@ pcsuitmat<-NULL
 
 for (p in proj_nam){
 print (p)
-proj<-raster(paste0("G:/data/tools/MaxEnt/Output/",extent,"/",p,"/",filename,"/quercus_tomentella.asc"))
+proj<-raster(paste0("G:/data/tools/MaxEnt/Output/",scenario,"/",p,"/",filename,"/quercus_tomentella.asc"))
 proj4string(proj) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
-writeRaster(proj, filename = paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/", p, ".tif"), format="GTiff", overwrite=TRUE)
+writeRaster(proj, filename = paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/", p, ".tif"), format="GTiff", overwrite=TRUE)
 high<-cellStats(proj, max)
 highmat<-rbind(highmat,high)
 diff<-proj-hist
-writeRaster(diff, filename=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/", p, ".tif"), format="GTiff", overwrite=TRUE)
+writeRaster(diff, filename=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/", p, ".tif"), format="GTiff", overwrite=TRUE)
 diffmean<-cellStats(diff, mean)
 diffmeanmat<-rbind(diffmeanmat, diffmean)
 diffmax<-cellStats(diff, max)
@@ -117,7 +133,7 @@ diffmaxmat<-rbind(diffmaxmat, diffmax)
 diffmin<-cellStats(diff, min)
 diffminmat<-rbind(diffminmat, diffmin)
 projrc <- reclassify(proj, rclmat)
-writeRaster(projrc, filename=paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/", p, ".tif"), format="GTiff", overwrite=TRUE)
+writeRaster(projrc, filename=paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/", p, ".tif"), format="GTiff", overwrite=TRUE)
 projfq<-as.data.frame(freq(projrc, 1))
 projsuit<-projfq[2,2]
 pcsuit<-(projsuit-histsuit)/histsuit
@@ -152,37 +168,37 @@ colnames(projtable)<-c("Projections", "Avg Test AUC", "Highest Future Suitabilit
 
 
 #Export tables for histtable and projtable
-write.csv(histtable,file=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/summarytables/historicsummarytable.csv"),row.names = FALSE)
-write.csv(projtable,file=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/summarytables/projectionssummarytable.csv"),row.names = FALSE)
+write.csv(histtable,file=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/summarytables/historicsummarytable.csv"),row.names = FALSE)
+write.csv(projtable,file=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/summarytables/projectionssummarytable.csv"),row.names = FALSE)
 
 #Read in all rasters and create summed raster
-histrc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/historic.tif"))
-projA1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MPI_rcp45_2010_2039.tif"))
-projA2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MPI_rcp45_2040_2069.tif"))
-projA3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MPI_rcp45_2070_2099.tif"))
-projB1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/CCSM4_rcp85_2010_2039.tif"))
-projB2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/CCSM4_rcp85_2040_2069.tif"))
-projB3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/CCSM4_rcp85_2070_2099.tif"))
-projC1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MIROC_rcp45_2010_2039.tif"))
-projC2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MIROC_rcp45_2040_2069.tif"))
-projC3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MIROC_rcp45_2070_2099.tif"))
-projD1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MIROC_rcp85_2010_2039.tif"))
-projD2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MIROC_rcp85_2040_2069.tif"))
-projD3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", extent, "/binary/MIROC_rcp85_2070_2099.tif"))
+histrc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/historic.tif"))
+projA1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MPI_rcp45_2010_2039.tif"))
+projA2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MPI_rcp45_2040_2069.tif"))
+projA3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MPI_rcp45_2070_2099.tif"))
+projB1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/CCSM4_rcp85_2010_2039.tif"))
+projB2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/CCSM4_rcp85_2040_2069.tif"))
+projB3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/CCSM4_rcp85_2070_2099.tif"))
+projC1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MIROC_rcp45_2010_2039.tif"))
+projC2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MIROC_rcp45_2040_2069.tif"))
+projC3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MIROC_rcp45_2070_2099.tif"))
+projD1rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MIROC_rcp85_2010_2039.tif"))
+projD2rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MIROC_rcp85_2040_2069.tif"))
+projD3rc<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/", scenario, "/binary/MIROC_rcp85_2070_2099.tif"))
 
   #Sum across scenarios and write raster
 Asum<-sum(histrc, projA1rc, projA2rc, projA3rc)
-writeRaster(Asum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/percentchange/MPI_rcp45.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(Asum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/percentchange/MPI_rcp45.tif"), format="GTiff", overwrite=TRUE)
 Bsum<-sum(histrc, projB1rc, projB2rc, projB3rc)
-writeRaster(Bsum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/percentchange/CCSM4_rcp85.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(Bsum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/percentchange/CCSM4_rcp85.tif"), format="GTiff", overwrite=TRUE)
 Csum<-sum(histrc, projC1rc, projC2rc, projC3rc)
-writeRaster(Csum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/percentchange/MIROC_rcp45.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(Csum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/percentchange/MIROC_rcp45.tif"), format="GTiff", overwrite=TRUE)
 Dsum<-sum(histrc, projD1rc, projD2rc, projD3rc)
-writeRaster(Dsum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/percentchange/MIROC_rcp85.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(Dsum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/percentchange/MIROC_rcp85.tif"), format="GTiff", overwrite=TRUE)
 
 #Sum all and write raster
 Allsum<-sum(histrc, projA1rc, projA2rc, projA3rc, projB1rc, projB2rc, projB3rc, projC1rc, projC2rc, projC3rc, projD1rc, projD2rc, projD3rc)
-writeRaster(Allsum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", extent, "/percentchange/ALLScenarios.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(Allsum, filename=paste0("G:/data/tools/MaxEnt/Analysis/", scenario, "/percentchange/ALLScenarios.tif"), format="GTiff", overwrite=TRUE)
 
 
 
