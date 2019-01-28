@@ -3,8 +3,9 @@ title: "Vegetation"
 author: "Sofie McComb"
 date: "October 28, 2018"
 output:
-  html_document: default
+  word_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -165,7 +166,7 @@ vegscr_prj<- spTransform(vegscr_join, CRS(ctalbers))
 
 #writeOGR(vegsca_prj, dsn = "G:/data/islands/sca/SCAVegMapClass", layer = "SCAVegMapClass", driver="ESRI Shapefile")
 
-writeOGR(vegscr_prj, dsn = "G:/data/islands/scr/SCRVegMapClass", layer = "SCRVegMapClass", driver="ESRI Shapefile")
+#writeOGR(vegscr_prj, dsn = "G:/data/islands/scr/SCRVegMapClass", layer = "SCRVegMapClass", driver="ESRI Shapefile")
 
 ```
 
