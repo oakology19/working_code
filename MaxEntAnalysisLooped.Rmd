@@ -13,6 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This R Markdown Script can be used to take the MaxEnt outputs and perform spatial and statistical analyses on the files for visualization in ArcGIS. The only variable you have to change is the scenario to the current scope of analysis being run. The script then for loops through all the current and projected climate file outputs for the scenario and performs the specified analyses for each and writes the appropriate raster tiff files to the correct folders. The entire process is automated so that a new scenario can be inputted and the all the same calculations and rasters can be created rapidly. Then the files can just be visualized in ArcGIS using predesigned templates for each analysis type that we created.
 
+1. Change layers
+2. Second reclassify option-gradient
+
+
 ```{r scenario analysis}
 ##############################################################################
 #Change the Scenario and the run the analysis
@@ -150,7 +154,7 @@ for (h in historics){
 if (scenario=="MainlandCA"){
   hist<-raster(paste0("G:/data/tools/MaxEnt/Output/", scenario, "/", h, "/", filename,"/quercus_tomentella.asc"))
 }else
-  hist<-raster(paste0("G:/data/tools/MaxEnt/Output/", scenario, "/", h, "/", filename,"/Quercus_tomentella_avg.asc"))
+  hist<-raster(paste0("G:/data/tools/MaxEnt/Output/", scenario, "/", h, "/", filename,"/Quercus_tomentella_layers_avg.asc"))
 
 
 proj4string(hist) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
