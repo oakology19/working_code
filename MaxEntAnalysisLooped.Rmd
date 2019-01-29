@@ -15,6 +15,9 @@ This R Markdown Script can be used to take the MaxEnt outputs and perform spatia
 
 1. Change layers
 2. Second reclassify option-gradient
+3. Sum of binary
+4. summary tables for summed across projections
+5. Add datatype INT1U to each binary write raster-but only 0-1 binary
 
 
 ```{r scenario analysis}
