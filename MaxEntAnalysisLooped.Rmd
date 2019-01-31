@@ -18,7 +18,7 @@ This R Markdown Script can be used to take the MaxEnt outputs and perform spatia
 ##############################################################################
 #Change the Scenario and the run the analysis
 
-scenario<-"sca_int_270m"
+scenario<-"allislands_270m"
 
 #Options:
 #allislands_270m
