@@ -1,6 +1,8 @@
 ---
 title: "ggplots"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -9,7 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
+library(dplyr)
+library(DataCombine)
+```
 
+```{r scr_fogelev}
 projectsumtable <- read_csv("G:/data/tools/MaxEnt/Analysis/scr_fogelev_270m/summarytables/projectionssummarytable.csv")
 
 historicsumtable <- read_csv("G:/data/tools/MaxEnt/Analysis/scr_fogelev_270m/summarytables/historicsummarytable.csv")
@@ -31,15 +37,53 @@ projection_gg <- projections_df %>%
   select(scenario, date, "Percent Suitable Area")
 
 colnames(projection_gg) <- c("scenario","date","p_suitable")
-
-date_vector <- rep(seq(1:3),4)
-projection_gg$date <- date_vector
 projection_gg$scenario <- as.factor(projection_gg$scenario)
-
 summary(projection_gg)
+historic_suit <- historicsumtable[1,4]
+
+mir45_row <- c('MIROC 4.5',1,historic_suit)
+mir85_row <- c('MIROC 8.5',1,historic_suit)
+mpi45_row <- c('MPI 4.5',1,historic_suit)
+ccsm85_row <- c('CCSM4 8.5',1,historic_suit)
+
+projection_gg <- InsertRow(projection_gg,mpi45_row,RowNum=1)
+projection_gg <- InsertRow(projection_gg,ccsm85_row,RowNum=5)
+projection_gg <- InsertRow(projection_gg,mir45_row,RowNum=9)
+projection_gg <- InsertRow(projection_gg,mir85_row,RowNum=13)
+
+levels(projection_gg$scenario)
+projection_gg$scenario <- factor(projection_gg$scenario, levels = c("MIROC 8.5","MIROC 4.5","CCSM4 8.5","MPI 4.5"))
 
 ggplot(projection_gg, aes(x=date,y =p_suitable))+
-  geom_line(aes(color=scenario))+
-  theme_classic()
+  geom_line(aes(color=scenario),size=1)+
+  ylab("Proportion of island with suitable habitat")+
+  xlab("Time Period")+
+  scale_x_discrete(limits = c("1981-2010","2010-2039","2040-2069","2070-2099"),expand = c(.01,0))+
+  scale_color_manual(values = c("darkorange3","darkgoldenrod3","navyblue","skyblue4"), name="Scenario")+
+  theme_bw()
+```
+
+```{r sri_fogelev}
+
+sri_ggplot <- read_csv("G:/data/tools/MaxEnt/Analysis/sri_fogelev_270m/summarytables/ggplottable.csv")
+
+summary(sri_ggplot)
+
+sri_ggplot$scenario <- as.factor(sri_ggplot$scenario)
+sri_ggplot$date <- as.factor(sri_ggplot$date)
+
+date_vector <- rep(seq(1:4),4)
+sri_ggplot$date <- date_vector
+
+levels(sri_ggplot$scenario)
+sri_ggplot$scenario <- factor(projection_gg$scenario, levels = c("MIROC 8.5","MIROC 4.5","CCSM4 8.5","MPI 4.5"))
+
+ggplot(sri_ggplot, aes(x=date,y =p_suitable))+
+  geom_line(aes(color=scenario),size=1)+
+  ylab("Proportion of island with suitable habitat")+
+  xlab("Time Period")+
+  scale_x_discrete(limits = c("1981-2010","2010-2039","2040-2069","2070-2099"),expand = c(.01,0))+
+  scale_color_manual(values = c("darkorange3","darkgoldenrod3","navyblue","skyblue4"), name="Scenario")+
+  theme_bw()
 ```
 
