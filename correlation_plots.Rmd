@@ -1,0 +1,48 @@
+---
+title: "correlation_plots"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(Hmisc)
+library(corrplot)
+
+df<- read_csv("climate_data.csv")
+
+df_all <- df %>% 
+  select(cwd,ppt,tmn,tmx)
+
+scr <- df %>% 
+  filter(Island=="SCR") %>% 
+  select(cwd,fog,ppt,tmn,tmx)
+
+sri <- df %>% 
+  filter(Island=="SRI") %>% 
+  select(cwd,fog,ppt,tmn,tmx)
+
+sca <- df %>% 
+  filter(Island=="SCA") %>% 
+  select(cwd,ppt,tmn,tmx)
+
+scr_nofog <- df %>% 
+  filter(Island=="SCR") %>% 
+  select(cwd,ppt,tmn,tmx)
+
+sri_nofog <- df %>% 
+  filter(Island=="SRI") %>% 
+  select(cwd,ppt,tmn,tmx)
+
+scr_corr <- cor(scr, use = "complete.obs")
+cor(sca, use = "complete.obs")
+cor(sri, use = "complete.obs")
+
+cor(df_all)
+
+plot(scr)
+```
+
