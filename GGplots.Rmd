@@ -60,6 +60,8 @@ projection_gg$date <- date_vector
 scr_ggplot <- projection_gg %>% 
   filter(scenario == "CCSM4 8.5"|scenario == "MIROC 8.5")
 
+scr_ggplot$p_suitable <- scr_ggplot$p_suitable*100
+
 ggplot(scr_ggplot, aes(x=date,y =p_suitable))+
   geom_line(aes(color=scenario),size=1.5)+
   ylab("Proportion of island\nwith suitable habitat")+
@@ -86,10 +88,13 @@ date_vector <- rep(seq(1:4),4)
 sri_ggplot$date <- date_vector
 
 levels(sri_ggplot$scenario)
-sri_ggplot$scenario <- factor(projection_gg$scenario, levels = c("MIROC 8.5","MIROC 4.5","CCSM4 8.5","MPI 4.5"))
+sri_ggplot$scenario <- factor(sri_ggplot$scenario, levels = c("CCSM4 8.5","MIROC 8.5","MIROC 4.5","MPI 4.5"))
+
 
 sri_ggplot <- sri_ggplot %>% 
   filter(scenario == "CCSM4 8.5"|scenario == "MIROC 8.5")
+
+sri_ggplot$p_suitable <- sri_ggplot$p_suitable*100
 
 ggplot(sri_ggplot, aes(x=date,y =p_suitable))+
   geom_line(aes(color=scenario),size=1.5)+
@@ -102,5 +107,74 @@ ggplot(sri_ggplot, aes(x=date,y =p_suitable))+
         legend.text = element_text(size=12),
         legend.title = element_text(size=13,face="bold"),
         axis.text = element_text(size=12))
+```
+
+```{r fig.height=5, fig.width=5.6}
+scaInt_ggplot <- read_csv("G:/data/tools/MaxEnt/Analysis/sca_int_270m/summarytables/ggplottable.csv")
+summary(scaInt_ggplot)
+scaInt_ggplot$scenario <- as.factor(scaInt_ggplot$scenario)
+
+scaInt_ggplot$p_suitable <- scaInt_ggplot$p_suitable*100
+
+ggplot(scaInt_ggplot, aes(x=date,y=p_suitable))+
+  geom_line(aes(color=scenario),size=1.5)+
+  ylab("% of island with suitable habitat")+
+  xlab("Time Period")+
+  ylim(0,100)+
+  scale_x_discrete(limits = c("1981-2010","2010-2039","2040-2069","2070-2099"),expand = c(0.0,0.21))+
+  scale_color_manual(values = c("darkgoldenrod3","skyblue4"), name="Scenario")+
+  theme_classic()+
+  theme(axis.title = element_text(face="bold",size = 14),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=13,face="bold"),
+        axis.text = element_text(size=12),
+        legend.position = "bottom")
+```
+
+```{r fig.height=4, fig.width=6}
+# Santa Cruz Island
+ggplot(scr_ggplot, aes(x=date,y =p_suitable))+
+  geom_line(aes(color=scenario),size=1.5)+
+  ylab("% of island with suitable habitat")+
+  xlab("Time Period")+
+  ylim(0,100)+
+  scale_x_discrete(limits = c("1981-2010","2010-2039","2040-2069","2070-2099"),expand = c(.01,0))+
+  scale_color_manual(values = c("darkgoldenrod3","skyblue4"), name="Scenario")+
+  theme_classic()+
+  theme(axis.title = element_text(face="bold",size = 14),
+        legend.text = element_text(size=13),
+        legend.title = element_text(size=14,face="bold"),
+        axis.text = element_text(size=12),
+        legend.position = "bottom")
+
+# Santa Rosa Island
+ggplot(sri_ggplot, aes(x=date,y =p_suitable))+
+  geom_line(aes(color=scenario),size=1.5)+
+  ylab("% of island with suitable habitat")+
+  xlab("Time Period")+
+  ylim(0,100)+
+  scale_x_discrete(limits = c("1981-2010","2010-2039","2040-2069","2070-2099"),expand = c(.01,0))+
+  scale_color_manual(values = c("darkgoldenrod3","skyblue4"), name="Scenario")+
+  theme_classic()+
+  theme(axis.title = element_text(face="bold",size = 14),
+        legend.text = element_text(size=13),
+        legend.title = element_text(size=14,face="bold"),
+        axis.text = element_text(size=12),
+        legend.position = "bottom")
+
+# Santa Catalina Island Interpolated
+ggplot(scaInt_ggplot, aes(x=date,y=p_suitable))+
+  geom_line(aes(color=scenario),size=1.5)+
+  ylab("% of island with Suitable habitat")+
+  xlab("Time Period")+
+  ylim(0,100)+
+  scale_x_discrete(limits = c("1981-2010","2010-2039","2040-2069","2070-2099"),expand = c(.01,0.2))+
+  scale_color_manual(values = c("darkgoldenrod3","skyblue4"), name="Scenario")+
+  theme_classic()+
+  theme(axis.title = element_text(face="bold",size = 14),
+        legend.text = element_text(size=13),
+        legend.title = element_text(size=14,face="bold"),
+        axis.text = element_text(size=11),
+        legend.position = "bottom")
 ```
 
