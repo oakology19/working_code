@@ -1,0 +1,244 @@
+---
+title: "IntegratedOutlook"
+author: "Sofie McComb"
+date: "February 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Creating Integrated Outlook Across All Fog and Climate Scenarios, both for separate time periods and across time periods
+
+```{r}
+
+#Packages
+library(tidyverse)#data rearrangement
+library(raster)#rasters
+
+
+#Options:
+#Keeping separate and noc including
+#allislands_270m
+#ni_270m
+#sca_270m
+#sca_int_270m
+#MainlandCA
+#sri_adultyoung_270m
+#sri_seedsap_270m
+
+#Keep separate for now
+#scr_270m
+#sri_270m
+
+#So currently making SCR integrated and SRI integrated
+
+#scr_foginc_270m
+#scr_fogdec_270m
+#sri_fogelev_270m
+#scr_fogconstant_270m
+
+#sri_foginc_270m
+#sri_fogdec_270m
+#scr_fogelev_270m
+#sri_fogconstant_270m
+
+
+
+#Combining All SRI Fog Scenarios
+#A is MPI and B is CCSM4 and C is MIROC 45 and D is MIROC 85
+#Read in all rasters to create summed raster
+#There is definetely a cleaner way to do this but I don't care as this is very clear
+
+
+##########################################################
+#Santa Rosa
+##########################################################
+
+#sri_fogelev_270m
+srifogelev_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/historic.tif"))
+srifogelev_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MPI_rcp45_2010_2039.tif"))
+srifogelev_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MPI_rcp45_2040_2069.tif"))
+srifogelev_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MPI_rcp45_2070_2099.tif"))
+srifogelev_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+srifogelev_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+srifogelev_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+srifogelev_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MIROC_rcp45_2010_2039.tif"))
+srifogelev_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MIROC_rcp45_2040_2069.tif"))
+srifogelev_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MIROC_rcp45_2070_2099.tif"))
+srifogelev_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MIROC_rcp85_2010_2039.tif"))
+srifogelev_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MIROC_rcp85_2040_2069.tif"))
+srifogelev_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogelev_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+#sri_foginc_270m
+srifoginc_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/historic.tif"))
+srifoginc_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MPI_rcp45_2010_2039.tif"))
+srifoginc_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MPI_rcp45_2040_2069.tif"))
+srifoginc_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MPI_rcp45_2070_2099.tif"))
+srifoginc_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+srifoginc_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+srifoginc_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+srifoginc_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MIROC_rcp45_2010_2039.tif"))
+srifoginc_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MIROC_rcp45_2040_2069.tif"))
+srifoginc_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MIROC_rcp45_2070_2099.tif"))
+srifoginc_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MIROC_rcp85_2010_2039.tif"))
+srifoginc_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MIROC_rcp85_2040_2069.tif"))
+srifoginc_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_foginc_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+#sri_fogdec_270m
+srifogdec_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/historic.tif"))
+srifogdec_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MPI_rcp45_2010_2039.tif"))
+srifogdec_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MPI_rcp45_2040_2069.tif"))
+srifogdec_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MPI_rcp45_2070_2099.tif"))
+srifogdec_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+srifogdec_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+srifogdec_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+srifogdec_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MIROC_rcp45_2010_2039.tif"))
+srifogdec_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MIROC_rcp45_2040_2069.tif"))
+srifogdec_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MIROC_rcp45_2070_2099.tif"))
+srifogdec_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MIROC_rcp85_2010_2039.tif"))
+srifogdec_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MIROC_rcp85_2040_2069.tif"))
+srifogdec_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogdec_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+#sri_fogconstant_270m
+srifogconstant_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/historic.tif"))
+srifogconstant_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MPI_rcp45_2010_2039.tif"))
+srifogconstant_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MPI_rcp45_2040_2069.tif"))
+srifogconstant_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MPI_rcp45_2070_2099.tif"))
+srifogconstant_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+srifogconstant_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+srifogconstant_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+srifogconstant_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MIROC_rcp45_2010_2039.tif"))
+srifogconstant_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MIROC_rcp45_2040_2069.tif"))
+srifogconstant_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MIROC_rcp45_2070_2099.tif"))
+srifogconstant_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MIROC_rcp85_2010_2039.tif"))
+srifogconstant_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MIROC_rcp85_2040_2069.tif"))
+srifogconstant_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/sri_fogconstant_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+
+
+
+##########################################################
+#Santa Cruz
+##########################################################
+
+#sri_fogelev_270m
+scrfogelev_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/historic.tif"))
+scrfogelev_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MPI_rcp45_2010_2039.tif"))
+scrfogelev_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MPI_rcp45_2040_2069.tif"))
+scrfogelev_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MPI_rcp45_2070_2099.tif"))
+scrfogelev_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+scrfogelev_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+scrfogelev_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+scrfogelev_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MIROC_rcp45_2010_2039.tif"))
+scrfogelev_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MIROC_rcp45_2040_2069.tif"))
+scrfogelev_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MIROC_rcp45_2070_2099.tif"))
+scrfogelev_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MIROC_rcp85_2010_2039.tif"))
+scrfogelev_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MIROC_rcp85_2040_2069.tif"))
+scrfogelev_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogelev_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+#scr_foginc_270m
+scrfoginc_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/historic.tif"))
+scrfoginc_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MPI_rcp45_2010_2039.tif"))
+scrfoginc_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MPI_rcp45_2040_2069.tif"))
+scrfoginc_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MPI_rcp45_2070_2099.tif"))
+scrfoginc_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+scrfoginc_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+scrfoginc_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+scrfoginc_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MIROC_rcp45_2010_2039.tif"))
+scrfoginc_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MIROC_rcp45_2040_2069.tif"))
+scrfoginc_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MIROC_rcp45_2070_2099.tif"))
+scrfoginc_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MIROC_rcp85_2010_2039.tif"))
+scrfoginc_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MIROC_rcp85_2040_2069.tif"))
+scrfoginc_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_foginc_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+#scr_fogdec_270m
+scrfogdec_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/historic.tif"))
+scrfogdec_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MPI_rcp45_2010_2039.tif"))
+scrfogdec_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MPI_rcp45_2040_2069.tif"))
+scrfogdec_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MPI_rcp45_2070_2099.tif"))
+scrfogdec_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+scrfogdec_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+scrfogdec_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+scrfogdec_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MIROC_rcp45_2010_2039.tif"))
+scrfogdec_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MIROC_rcp45_2040_2069.tif"))
+scrfogdec_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MIROC_rcp45_2070_2099.tif"))
+scrfogdec_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MIROC_rcp85_2010_2039.tif"))
+scrfogdec_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MIROC_rcp85_2040_2069.tif"))
+scrfogdec_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogdec_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+#scr_fogconstant_270m
+scrfogconstant_hist<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/historic.tif"))
+scrfogconstant_projA1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MPI_rcp45_2010_2039.tif"))
+scrfogconstant_projA2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MPI_rcp45_2040_2069.tif"))
+scrfogconstant_projA3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MPI_rcp45_2070_2099.tif"))
+scrfogconstant_projB1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/CCSM4_rcp85_2010_2039.tif"))
+scrfogconstant_projB2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/CCSM4_rcp85_2040_2069.tif"))
+scrfogconstant_projB3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/CCSM4_rcp85_2070_2099.tif"))
+scrfogconstant_projC1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MIROC_rcp45_2010_2039.tif"))
+scrfogconstant_projC2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MIROC_rcp45_2040_2069.tif"))
+scrfogconstant_projC3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MIROC_rcp45_2070_2099.tif"))
+scrfogconstant_projD1<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MIROC_rcp85_2010_2039.tif"))
+scrfogconstant_projD2<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MIROC_rcp85_2040_2069.tif"))
+scrfogconstant_projD3<-raster(paste0("G:/data/tools/MaxEnt/Output_tiff/scr_fogconstant_270m/binary/MIROC_rcp85_2070_2099.tif"))
+
+
+
+
+#Sum across scenarios and across scenarios/timeperiods and write raster
+#For each time period
+#Santa Rosa
+#Historic
+srihist<-sum(srifogelev_hist,srifoginc_hist,srifogdec_hist,srifogconstant_hist)
+
+#2010-2039
+sri_2010_2039<-sum(srifogelev_projA1,srifogelev_projB1,srifogelev_projC1,srifogelev_projD1,srifoginc_projA1,srifoginc_projB1,srifoginc_projC1,srifoginc_projD1,srifogdec_projA1,srifogdec_projB1,srifogdec_projC1,srifogdec_projD1,srifogconstant_projA1,srifogconstant_projB1,srifogconstant_projC1,srifogconstant_projD1)
+
+#2040-2069
+sri_2040_2069<-sum(srifogelev_projA2,srifogelev_projB2,srifogelev_projC2,srifogelev_projD2,srifoginc_projA2,srifoginc_projB2,srifoginc_projC2,srifoginc_projD2,srifogdec_projA2,srifogdec_projB2,srifogdec_projC2,srifogdec_projD2,srifogconstant_projA2,srifogconstant_projB2,srifogconstant_projC2,srifogconstant_projD2)
+
+#2070-2099
+sri_2070_2099<-sum(srifogelev_projA3,srifogelev_projB3,srifogelev_projC3,srifogelev_projD3,srifoginc_projA3,srifoginc_projB3,srifoginc_projC3,srifoginc_projD3,srifogdec_projA3,srifogdec_projB3,srifogdec_projC3,srifogdec_projD3,srifogconstant_projA3,srifogconstant_projB3,srifogconstant_projC3,srifogconstant_projD3)
+
+
+#Santa Cruz
+#Historic
+scrhist<-sum(scrfogelev_hist,scrfoginc_hist,scrfogdec_hist,scrfogconstant_hist)
+
+#2010-2039
+scr_2010_2039<-sum(scrfogelev_projA1,scrfogelev_projB1,scrfogelev_projC1,scrfogelev_projD1,scrfoginc_projA1,scrfoginc_projB1,scrfoginc_projC1,scrfoginc_projD1,scrfogdec_projA1,scrfogdec_projB1,scrfogdec_projC1,scrfogdec_projD1,scrfogconstant_projA1,scrfogconstant_projB1,scrfogconstant_projC1,scrfogconstant_projD1)
+
+#2040-2069
+scr_2040_2069<-sum(scrfogelev_projA2,scrfogelev_projB2,scrfogelev_projC2,scrfogelev_projD2,scrfoginc_projA2,scrfoginc_projB2,scrfoginc_projC2,scrfoginc_projD2,scrfogdec_projA2,scrfogdec_projB2,scrfogdec_projC2,scrfogdec_projD2,scrfogconstant_projA2,scrfogconstant_projB2,scrfogconstant_projC2,scrfogconstant_projD2)
+
+#2070-2099
+scr_2070_2099<-sum(scrfogelev_projA3,scrfogelev_projB3,scrfogelev_projC3,scrfogelev_projD3,scrfoginc_projA3,scrfoginc_projB3,scrfoginc_projC3,scrfoginc_projD3,scrfogdec_projA3,scrfogdec_projB3,scrfogdec_projC3,scrfogdec_projD3,scrfogconstant_projA3,scrfogconstant_projB3,scrfogconstant_projC3,scrfogconstant_projD3)
+
+
+
+#All Time Periods Together
+sri<-sum(srifogelev_hist,srifoginc_hist,srifogdec_hist,srifogconstant_hist,srifogelev_projA1,srifogelev_projB1,srifogelev_projC1,srifogelev_projD1,srifoginc_projA1,srifoginc_projB1,srifoginc_projC1,srifoginc_projD1,srifogdec_projA1,srifogdec_projB1,srifogdec_projC1,srifogdec_projD1,srifogconstant_projA1,srifogconstant_projB1,srifogconstant_projC1,srifogconstant_projD1,srifogelev_projA2,srifogelev_projB2,srifogelev_projC2,srifogelev_projD2,srifoginc_projA2,srifoginc_projB2,srifoginc_projC2,srifoginc_projD2,srifogdec_projA2,srifogdec_projB2,srifogdec_projC2,srifogdec_projD2,srifogconstant_projA2,srifogconstant_projB2,srifogconstant_projC2,srifogconstant_projD2,srifogelev_projA3,srifogelev_projB3,srifogelev_projC3,srifogelev_projD3,srifoginc_projA3,srifoginc_projB3,srifoginc_projC3,srifoginc_projD3,srifogdec_projA3,srifogdec_projB3,srifogdec_projC3,srifogdec_projD3,srifogconstant_projA3,srifogconstant_projB3,srifogconstant_projC3,srifogconstant_projD3)
+
+scr<-sum(scrfogelev_hist,scrfoginc_hist,scrfogdec_hist,scrfogconstant_hist,scrfogelev_projA1,scrfogelev_projB1,scrfogelev_projC1,scrfogelev_projD1,scrfoginc_projA1,scrfoginc_projB1,scrfoginc_projC1,scrfoginc_projD1,scrfogdec_projA1,scrfogdec_projB1,scrfogdec_projC1,scrfogdec_projD1,scrfogconstant_projA1,scrfogconstant_projB1,scrfogconstant_projC1,scrfogconstant_projD1,scrfogelev_projA2,scrfogelev_projB2,scrfogelev_projC2,scrfogelev_projD2,scrfoginc_projA2,scrfoginc_projB2,scrfoginc_projC2,scrfoginc_projD2,scrfogdec_projA2,scrfogdec_projB2,scrfogdec_projC2,scrfogdec_projD2,scrfogconstant_projA2,scrfogconstant_projB2,scrfogconstant_projC2,scrfogconstant_projD2,scrfogelev_projA3,scrfogelev_projB3,scrfogelev_projC3,scrfogelev_projD3,scrfoginc_projA3,scrfoginc_projB3,scrfoginc_projC3,scrfoginc_projD3,scrfogdec_projA3,scrfogdec_projB3,scrfogdec_projC3,scrfogdec_projD3,scrfogconstant_projA3,scrfogconstant_projB3,scrfogconstant_projC3,scrfogconstant_projD3)
+
+
+#Write Rasters
+writeRaster(srihist, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/srihist.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(sri_2010_2039, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/sri_2010_2039.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(sri_2040_2069, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/sri_2040_2069.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(sri_2070_2099, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/sri_2070_2099.tif"), format="GTiff", overwrite=TRUE)
+
+writeRaster(scrhist, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/scrhist.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(scr_2010_2039, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/scr_2010_2039.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(scr_2040_2069, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/scr_2040_2069.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(scr_2070_2099, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/scr_2070_2099.tif"), format="GTiff", overwrite=TRUE)
+
+writeRaster(sri, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/sri.tif"), format="GTiff", overwrite=TRUE)
+writeRaster(scr, filename=paste0("G:/data/tools/MaxEnt/Analysis/Integrated/scr.tif"), format="GTiff", overwrite=TRUE)
+
+
+
+
+```
+
