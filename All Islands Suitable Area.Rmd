@@ -1,0 +1,156 @@
+---
+title: "All Islands Suitable Area"
+author: "Sofie McComb"
+date: "February 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+#Packages
+library(tidyverse)#data rearrangement
+library(raster)#rasters
+
+scenario<-"allislands_270m"
+filename<-"final2"
+
+#Threshold value for scenario
+historic<-read.csv(paste0("G:/data/tools/MaxEnt/Output/", scenario, "/historic/final2/maxentResults.csv"))
+threshold<-historic[101,] %>% 
+  dplyr::select(Maximum.training.sensitivity.plus.specificity.logistic.threshold)
+threshold<-as.double(threshold) #0.4674
+rclmat<-c(-Inf,threshold,0, threshold,1,1)#Actual reclassify matrix based on threshold
+
+#Extents
+allextent<-raster("G:/data/islands/MaxEnt/Extent/allislands_270m.tif")
+scaextent<-raster("G:/data/islands/MaxEnt/Extent/sca_270m.tif")
+sriextent<-raster("G:/data/islands/MaxEnt/Extent/sri_270m.tif")
+scrextent<-raster("G:/data/islands/MaxEnt/Extent/scr_270m.tif")
+
+#Run analysis on historic projections
+h<-"historic"
+phistsuitmat<-NULL
+hist<-raster(paste0("G:/data/tools/MaxEnt/Output/", scenario, "/", h, "/", filename,"/Quercus_tomentella_avg.asc"))
+proj4string(hist) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
+histrc <- reclassify(hist, rclmat) #Threshold used here
+#All Islands
+histfq<-as.data.frame(freq(histrc, 1))
+histsuit<-histfq[2,2]
+histnosuit<-histfq[1,2]
+phistsuit<-histsuit/(histsuit+histnosuit)
+
+#Subset by extent to get result
+scahist<-crop(histrc, scaextent)
+srihist<-crop(histrc, sriextent)
+scrhist<-crop(histrc, scrextent)
+
+#Percent suitable by island
+#SCA
+scahistfq<-as.data.frame(freq(scahist, 1))
+scahistsuit<-scahistfq[2,2]
+scahistnosuit<-scahistfq[1,2]
+scaphistsuit<-scahistsuit/(scahistsuit+scahistnosuit)
+
+#SCR
+scrhistfq<-as.data.frame(freq(scrhist, 1))
+scrhistsuit<-scrhistfq[2,2]
+scrhistnosuit<-scrhistfq[1,2]
+scrphistsuit<-scrhistsuit/(scrhistsuit+scrhistnosuit)
+
+#SRI
+srihistfq<-as.data.frame(freq(srihist, 1))
+srihistsuit<-srihistfq[2,2]
+srihistnosuit<-srihistfq[1,2]
+sriphistsuit<-srihistsuit/(srihistsuit+srihistnosuit)
+
+phistsuitmat<-cbind(phistsuitmat, phistsuit,scaphistsuit,scrphistsuit,sriphistsuit)
+perchistsuit<-as.data.frame(phistsuitmat)
+colnames(perchistsuit)<-c("All Islands", "SCA", "SCR", "SRI")
+perchistsuit <-perchistsuit %>% 
+  mutate(Projection=c("Historic")) %>% 
+  dplyr::select(Projection, everything())
+
+
+#Run analysis on future projections
+
+projTestnames<-as.data.frame(c("MPI 4.5 2010-2039", "MPI 4.5 2040-2069", "MPI 4.5 2070-2099",
+                      "CCSM4 8.5 2010-2039", "CCSM4 8.5 2040-2069", "CCSM4 8.5 2070-2099",
+                      "MIROC 4.5 2010-2039", "MIROC 4.5 2040-2069", "MIROC 4.5 2070-2099",
+                      "MIROC 8.5 2010-2039", "MIROC 8.5 2040-2069", "MIROC 8.5 2070-2099"))
+  colnames(projTestnames)<-c("Projection")
+
+
+
+proj_nam<-as.matrix(c("MPI_rcp45_2010_2039", "MPI_rcp45_2040_2069", "MPI_rcp45_2070_2099","CCSM4_rcp85_2010_2039", "CCSM4_rcp85_2040_2069", "CCSM4_rcp85_2070_2099", "MIROC_rcp45_2010_2039", "MIROC_rcp45_2040_2069", "MIROC_rcp45_2070_2099", "MIROC_rcp85_2010_2039", "MIROC_rcp85_2040_2069", "MIROC_rcp85_2070_2099"))
+
+percsuitmat<-NULL
+for (p in proj_nam){
+print (p)
+proj<-raster(paste0("G:/data/tools/MaxEnt/Output/",scenario,"/",p,"/",filename,"/Quercus_tomentella_layers_avg.asc"))
+proj4string(proj) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") 
+projrc <- reclassify(proj, rclmat) #Threshold value used here
+
+#All Islands
+projfq<-as.data.frame(freq(projrc, 1))
+projnosuit<-projfq[1,2]
+if (nrow(projfq)==2){
+  projsuit<-0
+}else
+  projsuit<-projfq[2,2]
+percsuit<-projsuit/(projsuit+projnosuit)
+
+#Subset by extent to get result
+scaproj<-crop(projrc, scaextent)
+sriproj<-crop(projrc, sriextent)
+scrproj<-crop(projrc, scrextent)
+
+#Percent suitable by island
+#SCA
+scaprojfq<-as.data.frame(freq(scaproj, 1))
+scaprojnosuit<-scaprojfq[1,2]
+if (nrow(scaprojfq)==2){
+  scaprojsuit<-0
+}else
+  scaprojsuit<-scaprojfq[2,2]
+scapprojsuit<-scaprojsuit/(scaprojsuit+scaprojnosuit)
+
+#SCR
+scrprojfq<-as.data.frame(freq(scrproj, 1))
+scrprojnosuit<-scrprojfq[1,2]
+if (nrow(scrprojfq)==2){
+  scrprojsuit<-0
+}else
+  scrprojsuit<-scrprojfq[2,2]
+scrpprojsuit<-scrprojsuit/(scrprojsuit+scrprojnosuit)
+
+#SRI
+sriprojfq<-as.data.frame(freq(sriproj, 1))
+sriprojnosuit<-sriprojfq[1,2]
+if (nrow(sriprojfq)==2){
+  sriprojsuit<-0
+}else
+  sriprojsuit<-sriprojfq[2,2]
+sripprojsuit<-sriprojsuit/(sriprojsuit+sriprojnosuit)
+
+percsuitislands<-cbind(percsuit,scapprojsuit,scrpprojsuit,sripprojsuit)
+percsuitmat<-rbind(percsuitmat,percsuitislands)
+}#End proj names for loop
+
+percsuitdf<-as.data.frame(percsuitmat, row.names = FALSE)
+colnames(percsuitdf)<-c("All Islands", "SCA", "SCR", "SRI")
+projtable<-cbind(projTestnames, percsuitdf)
+
+
+#Combine historic and projection
+Allvalues<-rbind(perchistsuit, projtable)
+write.csv(Allvalues, file="G:/data/tools/MaxEnt/Analysis/IslandComparison/allislandscomparisonbyisland.csv", row.names = FALSE)
+
+
+
+
+```
+

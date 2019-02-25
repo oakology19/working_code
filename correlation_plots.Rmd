@@ -7,10 +7,12 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ```{r}
 library(tidyverse)
-library(Hmisc)
 library(corrplot)
+library(raster)
+library(rgdal)
 
 df<- read_csv("climate_data.csv")
 
@@ -40,9 +42,27 @@ sri_nofog <- df %>%
 scr_corr <- cor(scr, use = "complete.obs")
 cor(sca, use = "complete.obs")
 cor(sri, use = "complete.obs")
-
 cor(df_all)
 
 plot(scr)
+```
+
+```{r}
+ppt <- raster("G:/working/claire/ClimateVariableAnalysis/hist_climate/ppt.tif")
+tmx <- raster("G:/working/claire/ClimateVariableAnalysis/hist_climate/tmx.tif")
+tmn <- raster("G:/working/claire/ClimateVariableAnalysis/hist_climate/tmn.tif")
+cwd <- raster("G:/working/claire/ClimateVariableAnalysis/hist_climate/cwd.tif")
+
+sri_ext <- readOGR("G:/working/claire/ClimateVariableAnalysis/hist_climate/sri_extent/sri_extent.shp")
+sca_ext <- readOGR("G:/working/claire/ClimateVariableAnalysis/hist_climate/sca_extent/sca_extent.shp")
+scr_ext <- readOGR("G:/working/claire/ClimateVariableAnalysis/hist_climate/scr_extent/scr_extent.shp")
+
+summary(ppt)
+
+ppt_df <- as.data.frame(ppt$ppt)
+
+ggplot(ppt_df, aes(x=ppt))+
+  geom_density(fill="lightblue", alpha=.5)+
+  theme_classic()
 ```
 
