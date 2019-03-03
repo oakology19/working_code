@@ -1,0 +1,126 @@
+---
+title: "climate_change_vis"
+author: "ClairePowers"
+date: "March 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(raster)
+library(reshape2)
+library(tidyverse)
+library(ggridges)
+library(viridis)
+```
+
+CWD
+```{r}
+#Calling in all rasters from climate_diff_folder
+
+cwd_files <- list.files("G://working//claire//climate_change_vis//hist_99_climate_rasters//cwd",pattern = ".tif",full.names = T) #use pattern = '.tif$' or something else if you have multiple files in this folder
+
+cwd.stack<- stack(cwd_files)
+
+CWDstack_df <- as.data.frame(values(cwd.stack))
+
+colnames(CWDstack_df) <- c("CCSM85","MIROC45","MIROC85","MPI45","HISTORIC")
+
+CWDstack_df <- na.omit(CWDstack_df)
+
+cwdstack_melt <- melt(CWDstack_df)
+
+ggplot(cwdstack_melt, aes(x = value, y = variable, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, gradient_lwd = 1.)+
+  scale_fill_viridis(name = "CWD [mm]", option = "C")+
+  theme_bw()+
+  ylab("Climate Change Scenario")+
+  xlab("Climate Water Deficit (CWD - mm)")
+```
+
+PPT
+```{r}
+#Calling in all rasters from climate_diff_folder
+
+ppt_files <- list.files("G://working//claire//climate_change_vis//hist_99_climate_rasters//ppt",pattern = ".tif",full.names = T) 
+
+ppt.stack<- stack(ppt_files)
+
+pptstack_df <- as.data.frame(values(ppt.stack))
+
+summary(pptstack_df)
+
+colnames(pptstack_df) <- c("HISTORIC","CCSM85","MIROC45","MIROC85","MPI45")
+
+pptstack_df <- na.omit(pptstack_df)
+
+pptstack_melt <- melt(pptstack_df)
+
+ggplot(pptstack_melt, aes(x = value, y = variable, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, gradient_lwd = 1.)+
+  scale_fill_viridis(name = "ppt [mm]", option = "C")+
+  theme_bw()+
+  ylab("Climate Change Scenario")+
+  xlab("Annual Precipitation (ppt - mm)")
+```
+
+tmx
+```{r}
+#Calling in all rasters from climate_diff_folder
+
+tmx_files <- list.files("G://working//claire//climate_change_vis//hist_99_climate_rasters//tmx",pattern = ".tif",full.names = T) 
+
+tmx.stack<- stack(tmx_files)
+
+tmxstack_df <- as.data.frame(values(tmx.stack))
+
+colnames(tmxstack_df) <- c("Historic", "CCSM85","MIROC45","MIROC85","MPI45")
+
+tmxstack_df <- na.omit(tmxstack_df)
+
+tmxstack_melt <- melt(tmxstack_df)
+
+ggplot(tmxstack_melt, aes(x = value, y = variable, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, gradient_lwd = 1.)+
+  scale_fill_viridis(name = "TMX [C]", option = "C")+
+  theme_bw()+
+  ylab("Climate Change Scenario")+
+  xlab("Maximum Summer Temperature(C)")
+```
+
+```{r}
+#Calling in all rasters from climate_diff_folder
+tmn_files <- list.files("G://working//claire//climate_change_vis//hist_99_climate_rasters//tmn",pattern = ".tif",full.names = T) 
+
+hist <- raster("G://working//claire//climate_change_vis//hist_99_climate_rasters//tmn//historic.tif")
+ccsm <- raster("G://working//claire//climate_change_vis//hist_99_climate_rasters//tmn//CCSM4_rcp85.tif")
+miroc45 <- raster("G://working//claire//climate_change_vis//hist_99_climate_rasters//tmn//MIROC_rcp45.tif")
+miroc85 <- raster("G://working//claire//climate_change_vis//hist_99_climate_rasters//tmn//MIROC_rcp85.tif")
+mpi <- raster("G://working//claire//climate_change_vis//hist_99_climate_rasters//tmn//MPI_rcp45.tif")
+
+hist <- crop(hist,ccsm)
+
+crs(hist) <-  CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +datum=NAD83 +units=m +no_defs +ellps=GRS80
++towgs84=0,0,0")
+
+tmn.stack<- stack(hist,ccsm,miroc45,miroc85,mpi)
+
+tmnstack_df <- as.data.frame(values(tmn.stack))
+
+colnames(tmnstack_df) <- c("Historic", "CCSM85","MIROC45","MIROC85","MPI45")
+
+tmnstack_df <- na.omit(tmnstack_df)
+
+tmnstack_melt <- melt(tmnstack_df)
+
+ggplot(tmnstack_melt, aes(x = value, y = variable, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, gradient_lwd = 1.)+
+  scale_fill_viridis(name = "tmn [C]", option = "C")+
+  theme_bw()+
+  ylab("Climate Change Scenario")+
+  xlab("Minimum Winter Temperature(C)")
+```
+
